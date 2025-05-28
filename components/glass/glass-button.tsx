@@ -97,17 +97,24 @@ export function GlassButton({
                 <Button
                     className={`
             relative overflow-hidden
-            ${colorClasses.bg} backdrop-blur-xl
+            ${colorClasses.bg} backdrop-blur-md
             border ${colorClasses.border}
             ${colorClasses.text} font-medium
             shadow-lg ${colorClasses.hoverGlow}
             hover:${colorClasses.bg.replace('/20', '/30')}
             hover:border-white/40
-            hover:shadow-xl hover:scale-[1.02]
-            transition-all duration-300
-            active:scale-[0.98]
+            hover:shadow-xl
+            hover:brightness-110
+            transition-all duration-200 ease-out
+            active:brightness-95
+            transform-gpu
             ${className}
           `}
+                    style={{
+                        textRendering: 'optimizeLegibility',
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale'
+                    }}
                     size={size}
                     disabled={disabled || loading}
                     {...props}
@@ -115,7 +122,7 @@ export function GlassButton({
                     {/* Inner highlight for glass effect */}
                     <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
 
-                    <span className="relative z-10 flex items-center text-white drop-shadow-sm">
+                    <span className="relative z-10 flex items-center text-white font-medium">
             {loading && <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
                         {children}
           </span>
@@ -135,23 +142,30 @@ export function GlassButton({
                     size={size}
                     className={`
             relative overflow-hidden
-            bg-white/5 backdrop-blur-xl
+            bg-white/5 backdrop-blur-md
             border border-white/20
             text-white/90 font-medium
             shadow-lg
             hover:bg-white/10 hover:border-white/30
-            hover:shadow-xl hover:scale-[1.02]
-            transition-all duration-300
-            active:scale-[0.98]
+            hover:shadow-xl
+            hover:brightness-110
+            transition-all duration-200 ease-out
+            active:brightness-95
+            transform-gpu
             ${className}
           `}
+                    style={{
+                        textRendering: 'optimizeLegibility',
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale'
+                    }}
                     disabled={disabled || loading}
                     {...props}
                 >
                     {/* Inner highlight */}
                     <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
 
-                    <span className="relative z-10 flex items-center drop-shadow-sm">
+                    <span className="relative z-10 flex items-center font-medium">
             {loading && <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
                         {children}
           </span>
@@ -170,14 +184,21 @@ export function GlassButton({
         text-white/80 font-medium
         hover:bg-white/10 hover:text-white
         hover:backdrop-blur-sm
-        transition-all duration-300
-        active:scale-[0.98]
+        hover:brightness-110
+        transition-all duration-200 ease-out
+        active:brightness-95
+        transform-gpu
         ${className}
       `}
+            style={{
+                textRendering: 'optimizeLegibility',
+                WebkitFontSmoothing: 'antialiased',
+                MozOsxFontSmoothing: 'grayscale'
+            }}
             disabled={disabled || loading}
             {...props}
         >
-      <span className="relative z-10 flex items-center">
+      <span className="relative z-10 flex items-center font-medium">
         {loading && <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
           {children}
       </span>

@@ -188,501 +188,539 @@ export default function StudiesPage() {
           </PageHeader>
 
           <PageShell className="py-8">
-            {/* Statistics Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-              <div className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/15 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16"></div>
-                  <CardContent className="p-6 relative">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-300 mb-1">Total IRTs</p>
-                        <p className="text-3xl font-bold text-white">{totalIRTs}</p>
-                        <p className="text-xs text-gray-400 mt-1 flex items-center">
-                          <TrendingUp className="h-3 w-3 mr-1" />
-                          Active technologies
-                        </p>
+            <div className="space-y-6">
+              {/* Statistics Overview */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="group relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-cyan-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                  <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/15 overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16"></div>
+                    <CardContent className="p-6 relative">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-300 mb-1">Total IRTs</p>
+                          <p className="text-3xl font-bold text-white">{totalIRTs}</p>
+                          <p className="text-xs text-gray-400 mt-1 flex items-center">
+                            <TrendingUp className="h-3 w-3 mr-1" />
+                            Active technologies
+                          </p>
+                        </div>
+                        <div className="p-3 bg-blue-500/20 rounded-xl backdrop-blur-sm">
+                          <Beaker className="h-8 w-8 text-blue-400" />
+                        </div>
                       </div>
-                      <div className="p-3 bg-blue-500/20 rounded-xl backdrop-blur-sm">
-                        <Beaker className="h-8 w-8 text-blue-400" />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="group relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                  <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/15 overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -mr-16 -mt-16"></div>
+                    <CardContent className="p-6 relative">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-300 mb-1">Trial Managers</p>
+                          <p className="text-3xl font-bold text-white">{totalTMs}</p>
+                          <p className="text-xs text-gray-400 mt-1 flex items-center">
+                            <Activity className="h-3 w-3 mr-1" />
+                            Managing trials
+                          </p>
+                        </div>
+                        <div className="p-3 bg-emerald-500/20 rounded-xl backdrop-blur-sm">
+                          <FileText className="h-8 w-8 text-emerald-400" />
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="group relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                  <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/15 overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -mr-16 -mt-16"></div>
+                    <CardContent className="p-6 relative">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-300 mb-1">Active Studies</p>
+                          <p className="text-3xl font-bold text-white">{totalStudies}</p>
+                          <p className="text-xs text-gray-400 mt-1 flex items-center">
+                            <BarChart3 className="h-3 w-3 mr-1" />
+                            In progress
+                          </p>
+                        </div>
+                        <div className="p-3 bg-purple-500/20 rounded-xl backdrop-blur-sm">
+                          <Database className="h-8 w-8 text-purple-400" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="group relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-amber-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+                  <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/15 overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16"></div>
+                    <CardContent className="p-6 relative">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-300 mb-1">Total Tasks</p>
+                          <p className="text-3xl font-bold text-white">{totalTasks}</p>
+                          <p className="text-xs text-gray-400 mt-1 flex items-center">
+                            <Sparkles className="h-3 w-3 mr-1" />
+                            Tracked items
+                          </p>
+                        </div>
+                        <div className="p-3 bg-orange-500/20 rounded-xl backdrop-blur-sm">
+                          <TrendingUp className="h-8 w-8 text-orange-400" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
 
-              <div className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600/20 to-teal-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/15 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full -mr-16 -mt-16"></div>
-                  <CardContent className="p-6 relative">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-300 mb-1">Trial Managers</p>
-                        <p className="text-3xl font-bold text-white">{totalTMs}</p>
-                        <p className="text-xs text-gray-400 mt-1 flex items-center">
-                          <Activity className="h-3 w-3 mr-1" />
-                          Managing trials
-                        </p>
-                      </div>
-                      <div className="p-3 bg-emerald-500/20 rounded-xl backdrop-blur-sm">
-                        <FileText className="h-8 w-8 text-emerald-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <Tabs defaultValue="irts" className="w-full">
+                {/* Enhanced Glassmorphism Tab Navigation */}
+                <div className="relative group mb-6">
+                  <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-emerald-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300 opacity-30"></div>
+                  <TabsList className="relative w-full bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-2 h-auto min-h-[80px] grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <TabsTrigger
+                        value="irts"
+                        className="relative group/tab flex items-center justify-center gap-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600/80 data-[state=active]:to-cyan-600/80 data-[state=active]:text-white data-[state=active]:shadow-xl hover:bg-white/10 transition-all duration-300 px-6 py-4 rounded-xl border border-transparent data-[state=active]:border-white/30 text-gray-300 hover:text-white font-medium overflow-hidden"
+                    >
+                      {/* Subtle glow for active state */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 opacity-0 data-[state=active]:opacity-100 transition-opacity duration-300 rounded-xl"></div>
 
-              <div className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/15 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -mr-16 -mt-16"></div>
-                  <CardContent className="p-6 relative">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-300 mb-1">Active Studies</p>
-                        <p className="text-3xl font-bold text-white">{totalStudies}</p>
-                        <p className="text-xs text-gray-400 mt-1 flex items-center">
-                          <BarChart3 className="h-3 w-3 mr-1" />
-                          In progress
-                        </p>
+                      <div className="relative z-10 flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-blue-500/20 backdrop-blur-sm">
+                          <Beaker className="h-5 w-5 text-blue-400" />
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <span className="font-semibold text-sm">Interactive Response</span>
+                          <span className="font-semibold text-sm">Technologies</span>
+                        </div>
+                        <Badge className="ml-auto bg-blue-500/30 text-blue-200 border-blue-400/40 backdrop-blur-sm shadow-lg">
+                          {totalIRTs}
+                        </Badge>
                       </div>
-                      <div className="p-3 bg-purple-500/20 rounded-xl backdrop-blur-sm">
-                        <Database className="h-8 w-8 text-purple-400" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    </TabsTrigger>
 
-              <div className="group relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-amber-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/15 overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16"></div>
-                  <CardContent className="p-6 relative">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-300 mb-1">Total Tasks</p>
-                        <p className="text-3xl font-bold text-white">{totalTasks}</p>
-                        <p className="text-xs text-gray-400 mt-1 flex items-center">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          Tracked items
-                        </p>
+                    <TabsTrigger
+                        value="tms"
+                        className="relative group/tab flex items-center justify-center gap-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600/80 data-[state=active]:to-teal-600/80 data-[state=active]:text-white data-[state=active]:shadow-xl hover:bg-white/10 transition-all duration-300 px-6 py-4 rounded-xl border border-transparent data-[state=active]:border-white/30 text-gray-300 hover:text-white font-medium overflow-hidden"
+                    >
+                      {/* Subtle glow for active state */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 opacity-0 data-[state=active]:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+
+                      <div className="relative z-10 flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-emerald-500/20 backdrop-blur-sm">
+                          <FileText className="h-5 w-5 text-emerald-400" />
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <span className="font-semibold text-sm">Trial</span>
+                          <span className="font-semibold text-sm">Managers</span>
+                        </div>
+                        <Badge className="ml-auto bg-emerald-500/30 text-emerald-200 border-emerald-400/40 backdrop-blur-sm shadow-lg">
+                          {totalTMs}
+                        </Badge>
                       </div>
-                      <div className="p-3 bg-orange-500/20 rounded-xl backdrop-blur-sm">
-                        <TrendingUp className="h-8 w-8 text-orange-400" />
+                    </TabsTrigger>
+
+                    <TabsTrigger
+                        value="studies"
+                        className="relative group/tab flex items-center justify-center gap-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600/80 data-[state=active]:to-pink-600/80 data-[state=active]:text-white data-[state=active]:shadow-xl hover:bg-white/10 transition-all duration-300 px-6 py-4 rounded-xl border border-transparent data-[state=active]:border-white/30 text-gray-300 hover:text-white font-medium overflow-hidden"
+                    >
+                      {/* Subtle glow for active state */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 opacity-0 data-[state=active]:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+
+                      <div className="relative z-10 flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-purple-500/20 backdrop-blur-sm">
+                          <Database className="h-5 w-5 text-purple-400" />
+                        </div>
+                        <div className="flex flex-col items-start">
+                          <span className="font-semibold text-sm">Studies</span>
+                          <span className="font-semibold text-sm">Overview</span>
+                        </div>
+                        <Badge className="ml-auto bg-purple-500/30 text-purple-200 border-purple-400/40 backdrop-blur-sm shadow-lg">
+                          {totalStudies}
+                        </Badge>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
+
+                <TabsContent value="irts" className="space-y-6">
+                  <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden">
+                    <CardHeader className="border-b border-white/10 bg-gradient-to-r from-blue-600/10 to-cyan-600/10 backdrop-blur-sm">
+                      <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+                        <Beaker className="h-5 w-5 text-blue-400" />
+                        Interactive Response Technologies
+                      </CardTitle>
+                      <CardDescription className="text-gray-300">
+                        Manage and view all Interactive Response Technologies (IRTs) in the system
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      {irtsLoading ? (
+                          <div className="p-6">
+                            <TableSkeleton />
+                          </div>
+                      ) : sortedIRTs.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="p-5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl mb-6 backdrop-blur-sm">
+                              <Beaker className="h-16 w-16 text-blue-400" />
+                            </div>
+                            <h3 className="mb-2 text-lg font-semibold text-white">No IRTs Found</h3>
+                            <p className="text-sm text-gray-400 max-w-sm">
+                              {searchQuery ? "No IRTs match your search criteria" : "Get started by creating your first IRT"}
+                            </p>
+                            <Button className="mt-6 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
+                              <Plus className="mr-2 h-4 w-4" />
+                              Create IRT
+                            </Button>
+                          </div>
+                      ) : (
+                          <div className="overflow-hidden">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-white/5 border-b border-white/10 hover:bg-white/[0.07]">
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("jiraKey", irtSort, setIrtSort)}
+                                  >
+                                    JIRA Key
+                                    <SortIndicator column="jiraKey" sortConfig={irtSort} />
+                                  </TableHead>
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("protocol", irtSort, setIrtSort)}
+                                  >
+                                    Protocol
+                                    <SortIndicator column="protocol" sortConfig={irtSort} />
+                                  </TableHead>
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("version", irtSort, setIrtSort)}
+                                  >
+                                    Version
+                                    <SortIndicator column="version" sortConfig={irtSort} />
+                                  </TableHead>
+                                  <TableHead className="text-gray-300 font-medium text-right">Actions</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {sortedIRTs.map((irt, index) => (
+                                    <TableRow
+                                        key={irt.interactiveResponseTechnologyId || index}
+                                        className="border-b border-white/5 hover:bg-white/5 transition-all duration-200"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                      <TableCell>
+                                        {irt.jiraKey ? (
+                                            <a
+                                                href={irt.jiraLink || "#"}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1.5 font-medium text-blue-400 hover:text-blue-300 transition-colors duration-200 group"
+                                            >
+                                              {irt.jiraKey}
+                                              <ExternalLink className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
+                                            </a>
+                                        ) : (
+                                            <span className="text-gray-500">—</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge
+                                            variant="outline"
+                                            className="font-mono bg-blue-500/10 border-blue-400/30 text-blue-300"
+                                        >
+                                          {irt.protocol || "—"}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge variant="outline" className="font-mono bg-blue-500/10 border-blue-400/30 text-blue-300">
+                                          {irt.version}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        {irt.webLink && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => window.open(irt.webLink, "_blank")}
+                                                className="bg-white/5 hover:bg-white/10 border-white/20 text-gray-300 hover:text-white transition-all duration-200"
+                                            >
+                                              <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                                              View
+                                            </Button>
+                                        )}
+                                      </TableCell>
+                                    </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="tms" className="space-y-6">
+                  <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden">
+                    <CardHeader className="border-b border-white/10 bg-gradient-to-r from-emerald-600/10 to-teal-600/10 backdrop-blur-sm">
+                      <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-emerald-400" />
+                        Trial Managers
+                      </CardTitle>
+                      <CardDescription className="text-gray-300">
+                        Manage and view all Trial Managers in the system
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      {tmsLoading ? (
+                          <div className="p-6">
+                            <TableSkeleton />
+                          </div>
+                      ) : sortedTMs.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="p-5 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-2xl mb-6 backdrop-blur-sm">
+                              <FileText className="h-16 w-16 text-emerald-400" />
+                            </div>
+                            <h3 className="mb-2 text-lg font-semibold text-white">No Trial Managers Found</h3>
+                            <p className="text-sm text-gray-400 max-w-sm">
+                              {searchQuery
+                                  ? "No Trial Managers match your search criteria"
+                                  : "Get started by creating your first Trial Manager"}
+                            </p>
+                            <Button className="mt-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
+                              <Plus className="mr-2 h-4 w-4" />
+                              Create Trial Manager
+                            </Button>
+                          </div>
+                      ) : (
+                          <div className="overflow-hidden">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-white/5 border-b border-white/10 hover:bg-white/[0.07]">
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("jiraKey", tmSort, setTmSort)}
+                                  >
+                                    JIRA Key
+                                    <SortIndicator column="jiraKey" sortConfig={tmSort} />
+                                  </TableHead>
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("client.name", tmSort, setTmSort)}
+                                  >
+                                    Client
+                                    <SortIndicator column="client.name" sortConfig={tmSort} />
+                                  </TableHead>
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("protocol", tmSort, setTmSort)}
+                                  >
+                                    Protocol
+                                    <SortIndicator column="protocol" sortConfig={tmSort} />
+                                  </TableHead>
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("version", tmSort, setTmSort)}
+                                  >
+                                    Version
+                                    <SortIndicator column="version" sortConfig={tmSort} />
+                                  </TableHead>
+                                  <TableHead className="text-gray-300 font-medium text-right">Actions</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {sortedTMs.map((tm, index) => (
+                                    <TableRow
+                                        key={tm.trialManagerId || index}
+                                        className="border-b border-white/5 hover:bg-white/5 transition-all duration-200"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                      <TableCell>
+                                        {tm.jiraKey ? (
+                                            <a
+                                                href={tm.jiraLink || "#"}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1.5 font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-200 group"
+                                            >
+                                              {tm.jiraKey}
+                                              <ExternalLink className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
+                                            </a>
+                                        ) : (
+                                            <span className="text-gray-500">—</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        <p className="font-medium text-gray-200">{tm.client?.name || "—"}</p>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge
+                                            variant="outline"
+                                            className="font-mono bg-emerald-500/10 border-emerald-400/30 text-emerald-300"
+                                        >
+                                          {tm.protocol || "—"}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge variant="outline" className="font-mono bg-emerald-500/10 border-emerald-400/30 text-emerald-300">
+                                          {tm.version}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        {tm.webLink && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => window.open(tm.webLink, "_blank")}
+                                                className="bg-white/5 hover:bg-white/10 border-white/20 text-gray-300 hover:text-white transition-all duration-200"
+                                            >
+                                              <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                                              View
+                                            </Button>
+                                        )}
+                                      </TableCell>
+                                    </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="studies" className="space-y-6">
+                  <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden">
+                    <CardHeader className="border-b border-white/10 bg-gradient-to-r from-purple-600/10 to-pink-600/10 backdrop-blur-sm">
+                      <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+                        <Database className="h-5 w-5 text-purple-400" />
+                        Studies Overview
+                      </CardTitle>
+                      <CardDescription className="text-gray-300">View and manage all studies in the system</CardDescription>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      {studiesLoading ? (
+                          <div className="p-6">
+                            <TableSkeleton />
+                          </div>
+                      ) : sortedStudies.length === 0 ? (
+                          <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="p-5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl mb-6 backdrop-blur-sm">
+                              <Database className="h-16 w-16 text-purple-400" />
+                            </div>
+                            <h3 className="mb-2 text-lg font-semibold text-white">No Studies Found</h3>
+                            <p className="text-sm text-gray-400 max-w-sm">
+                              {searchQuery
+                                  ? "No studies match your search criteria"
+                                  : "Get started by creating your first study"}
+                            </p>
+                            <Button
+                                className="mt-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                                onClick={() => router.push('/studies/new')}
+                            >
+                              <Plus className="mr-2 h-4 w-4" />
+                              Create Study
+                            </Button>
+                          </div>
+                      ) : (
+                          <div className="overflow-hidden">
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="bg-white/5 border-b border-white/10 hover:bg-white/[0.07]">
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("name", studySort, setStudySort)}
+                                  >
+                                    Study Name
+                                    <SortIndicator column="name" sortConfig={studySort} />
+                                  </TableHead>
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("client.name", studySort, setStudySort)}
+                                  >
+                                    Client
+                                    <SortIndicator column="client.name" sortConfig={studySort} />
+                                  </TableHead>
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("protocol", studySort, setStudySort)}
+                                  >
+                                    Protocol
+                                    <SortIndicator column="protocol" sortConfig={studySort} />
+                                  </TableHead>
+                                  <TableHead
+                                      className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("description", studySort, setStudySort)}
+                                  >
+                                    Description
+                                    <SortIndicator column="description" sortConfig={studySort} />
+                                  </TableHead>
+                                  <TableHead
+                                      className="text-gray-300 font-medium text-center cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() =>
+                                          handleSort("interactiveResponseTechnologies.length", studySort, setStudySort)
+                                      }
+                                  >
+                                    IRTs
+                                    <SortIndicator column="interactiveResponseTechnologies.length" sortConfig={studySort} />
+                                  </TableHead>
+                                  <TableHead
+                                      className="text-gray-300 font-medium text-center cursor-pointer select-none hover:text-white transition-colors duration-200"
+                                      onClick={() => handleSort("tasks.length", studySort, setStudySort)}
+                                  >
+                                    Tasks
+                                    <SortIndicator column="tasks.length" sortConfig={studySort} />
+                                  </TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {sortedStudies.map((study, index) => (
+                                    <TableRow
+                                        key={study.studyId || index}
+                                        className="border-b border-white/5 hover:bg-white/5 transition-all duration-200"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                      <TableCell className="font-semibold text-gray-100">{study.name}</TableCell>
+                                      <TableCell className="font-medium text-gray-300">{study.client?.name || "—"}</TableCell>
+                                      <TableCell>
+                                        <Badge
+                                            variant="outline"
+                                            className="font-mono bg-purple-500/10 border-purple-400/30 text-purple-300"
+                                        >
+                                          {study.protocol}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell className="max-w-[300px]">
+                                        <p className="truncate text-sm text-gray-400">{study.description}</p>
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        <Badge variant="outline" className="font-mono bg-purple-500/10 border-purple-400/30 text-purple-300">
+                                          {study.interactiveResponseTechnologies?.length || 0}
+                                        </Badge>
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        <Badge variant="outline" className="font-mono bg-purple-500/10 border-purple-400/30 text-purple-300">
+                                          {study.tasks?.length || 0}
+                                        </Badge>
+                                      </TableCell>
+                                    </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
-
-            <Tabs defaultValue="irts" className="w-full">
-              <TabsList className="mb-8 bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl p-1.5 h-auto">
-                <TabsTrigger
-                    value="irts"
-                    className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-cyan-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 px-4 py-2.5"
-                >
-                  <Beaker className="h-4 w-4" />
-                  <span className="font-medium">Interactive Response Technologies</span>
-                  <Badge variant="secondary" className="ml-2 bg-blue-500/20 text-blue-200 border-blue-400/30">
-                    {totalIRTs}
-                  </Badge>
-                </TabsTrigger>
-                <TabsTrigger
-                    value="tms"
-                    className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-600 data-[state=active]:to-teal-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 px-4 py-2.5"
-                >
-                  <FileText className="h-4 w-4" />
-                  <span className="font-medium">Trial Managers</span>
-                  <Badge variant="secondary" className="ml-2 bg-emerald-500/20 text-emerald-200 border-emerald-400/30">
-                    {totalTMs}
-                  </Badge>
-                </TabsTrigger>
-                <TabsTrigger
-                    value="studies"
-                    className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 px-4 py-2.5"
-                >
-                  <Database className="h-4 w-4" />
-                  <span className="font-medium">Studies Overview</span>
-                  <Badge variant="secondary" className="ml-2 bg-purple-500/20 text-purple-200 border-purple-400/30">
-                    {totalStudies}
-                  </Badge>
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="irts" className="space-y-6">
-                <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden">
-                  <CardHeader className="border-b border-white/10 bg-gradient-to-r from-blue-600/10 to-cyan-600/10 backdrop-blur-sm">
-                    <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                      <Beaker className="h-5 w-5 text-blue-400" />
-                      Interactive Response Technologies
-                    </CardTitle>
-                    <CardDescription className="text-gray-300">
-                      Manage and view all Interactive Response Technologies (IRTs) in the system
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {irtsLoading ? (
-                        <div className="p-6">
-                          <TableSkeleton />
-                        </div>
-                    ) : sortedIRTs.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-center">
-                          <div className="p-5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl mb-6 backdrop-blur-sm">
-                            <Beaker className="h-16 w-16 text-blue-400" />
-                          </div>
-                          <h3 className="mb-2 text-lg font-semibold text-white">No IRTs Found</h3>
-                          <p className="text-sm text-gray-400 max-w-sm">
-                            {searchQuery ? "No IRTs match your search criteria" : "Get started by creating your first IRT"}
-                          </p>
-                          <Button className="mt-6 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Create IRT
-                          </Button>
-                        </div>
-                    ) : (
-                        <div className="overflow-hidden">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="bg-white/5 border-b border-white/10 hover:bg-white/[0.07]">
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("jiraKey", irtSort, setIrtSort)}
-                                >
-                                  JIRA Key
-                                  <SortIndicator column="jiraKey" sortConfig={irtSort} />
-                                </TableHead>
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("protocol", irtSort, setIrtSort)}
-                                >
-                                  Protocol
-                                  <SortIndicator column="protocol" sortConfig={irtSort} />
-                                </TableHead>
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("version", irtSort, setIrtSort)}
-                                >
-                                  Version
-                                  <SortIndicator column="version" sortConfig={irtSort} />
-                                </TableHead>
-                                <TableHead className="text-gray-300 font-medium text-right">Actions</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {sortedIRTs.map((irt, index) => (
-                                  <TableRow
-                                      key={irt.interactiveResponseTechnologyId || index}
-                                      className="border-b border-white/5 hover:bg-white/5 transition-all duration-200"
-                                      style={{ animationDelay: `${index * 50}ms` }}
-                                  >
-                                    <TableCell>
-                                      {irt.jiraKey ? (
-                                          <a
-                                              href={irt.jiraLink || "#"}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="inline-flex items-center gap-1.5 font-medium text-blue-400 hover:text-blue-300 transition-colors duration-200 group"
-                                          >
-                                            {irt.jiraKey}
-                                            <ExternalLink className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
-                                          </a>
-                                      ) : (
-                                          <span className="text-gray-500">—</span>
-                                      )}
-                                    </TableCell>
-                                    <TableCell>
-                                      <Badge
-                                          variant="outline"
-                                          className="font-mono bg-blue-500/10 border-blue-400/30 text-blue-300"
-                                      >
-                                        {irt.protocol || "—"}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                      <Badge variant="outline" className="font-mono bg-blue-500/10 border-blue-400/30 text-blue-300">
-                                        {irt.version}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      {irt.webLink && (
-                                          <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() => window.open(irt.webLink, "_blank")}
-                                              className="bg-white/5 hover:bg-white/10 border-white/20 text-gray-300 hover:text-white transition-all duration-200"
-                                          >
-                                            <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                                            View
-                                          </Button>
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="tms" className="space-y-6">
-                <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden">
-                  <CardHeader className="border-b border-white/10 bg-gradient-to-r from-emerald-600/10 to-teal-600/10 backdrop-blur-sm">
-                    <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-emerald-400" />
-                      Trial Managers
-                    </CardTitle>
-                    <CardDescription className="text-gray-300">
-                      Manage and view all Trial Managers in the system
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {tmsLoading ? (
-                        <div className="p-6">
-                          <TableSkeleton />
-                        </div>
-                    ) : sortedTMs.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-center">
-                          <div className="p-5 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-2xl mb-6 backdrop-blur-sm">
-                            <FileText className="h-16 w-16 text-emerald-400" />
-                          </div>
-                          <h3 className="mb-2 text-lg font-semibold text-white">No Trial Managers Found</h3>
-                          <p className="text-sm text-gray-400 max-w-sm">
-                            {searchQuery
-                                ? "No Trial Managers match your search criteria"
-                                : "Get started by creating your first Trial Manager"}
-                          </p>
-                          <Button className="mt-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Create Trial Manager
-                          </Button>
-                        </div>
-                    ) : (
-                        <div className="overflow-hidden">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="bg-white/5 border-b border-white/10 hover:bg-white/[0.07]">
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("jiraKey", tmSort, setTmSort)}
-                                >
-                                  JIRA Key
-                                  <SortIndicator column="jiraKey" sortConfig={tmSort} />
-                                </TableHead>
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("client.name", tmSort, setTmSort)}
-                                >
-                                  Client
-                                  <SortIndicator column="client.name" sortConfig={tmSort} />
-                                </TableHead>
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("protocol", tmSort, setTmSort)}
-                                >
-                                  Protocol
-                                  <SortIndicator column="protocol" sortConfig={tmSort} />
-                                </TableHead>
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("version", tmSort, setTmSort)}
-                                >
-                                  Version
-                                  <SortIndicator column="version" sortConfig={tmSort} />
-                                </TableHead>
-                                <TableHead className="text-gray-300 font-medium text-right">Actions</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {sortedTMs.map((tm, index) => (
-                                  <TableRow
-                                      key={tm.trialManagerId || index}
-                                      className="border-b border-white/5 hover:bg-white/5 transition-all duration-200"
-                                      style={{ animationDelay: `${index * 50}ms` }}
-                                  >
-                                    <TableCell>
-                                      {tm.jiraKey ? (
-                                          <a
-                                              href={tm.jiraLink || "#"}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="inline-flex items-center gap-1.5 font-medium text-emerald-400 hover:text-emerald-300 transition-colors duration-200 group"
-                                          >
-                                            {tm.jiraKey}
-                                            <ExternalLink className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
-                                          </a>
-                                      ) : (
-                                          <span className="text-gray-500">—</span>
-                                      )}
-                                    </TableCell>
-                                    <TableCell>
-                                      <p className="font-medium text-gray-200">{tm.client?.name || "—"}</p>
-                                    </TableCell>
-                                    <TableCell>
-                                      <Badge
-                                          variant="outline"
-                                          className="font-mono bg-emerald-500/10 border-emerald-400/30 text-emerald-300"
-                                      >
-                                        {tm.protocol || "—"}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                      <Badge variant="outline" className="font-mono bg-emerald-500/10 border-emerald-400/30 text-emerald-300">
-                                        {tm.version}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      {tm.webLink && (
-                                          <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() => window.open(tm.webLink, "_blank")}
-                                              className="bg-white/5 hover:bg-white/10 border-white/20 text-gray-300 hover:text-white transition-all duration-200"
-                                          >
-                                            <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                                            View
-                                          </Button>
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="studies" className="space-y-6">
-                <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden">
-                  <CardHeader className="border-b border-white/10 bg-gradient-to-r from-purple-600/10 to-pink-600/10 backdrop-blur-sm">
-                    <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                      <Database className="h-5 w-5 text-purple-400" />
-                      Studies Overview
-                    </CardTitle>
-                    <CardDescription className="text-gray-300">View and manage all studies in the system</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    {studiesLoading ? (
-                        <div className="p-6">
-                          <TableSkeleton />
-                        </div>
-                    ) : sortedStudies.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-center">
-                          <div className="p-5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl mb-6 backdrop-blur-sm">
-                            <Database className="h-16 w-16 text-purple-400" />
-                          </div>
-                          <h3 className="mb-2 text-lg font-semibold text-white">No Studies Found</h3>
-                          <p className="text-sm text-gray-400 max-w-sm">
-                            {searchQuery
-                                ? "No studies match your search criteria"
-                                : "Get started by creating your first study"}
-                          </p>
-                          <Button
-                              className="mt-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                              onClick={() => router.push('/studies/new')}
-                          >
-                            <Plus className="mr-2 h-4 w-4" />
-                            Create Study
-                          </Button>
-                        </div>
-                    ) : (
-                        <div className="overflow-hidden">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="bg-white/5 border-b border-white/10 hover:bg-white/[0.07]">
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("name", studySort, setStudySort)}
-                                >
-                                  Study Name
-                                  <SortIndicator column="name" sortConfig={studySort} />
-                                </TableHead>
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("client.name", studySort, setStudySort)}
-                                >
-                                  Client
-                                  <SortIndicator column="client.name" sortConfig={studySort} />
-                                </TableHead>
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("protocol", studySort, setStudySort)}
-                                >
-                                  Protocol
-                                  <SortIndicator column="protocol" sortConfig={studySort} />
-                                </TableHead>
-                                <TableHead
-                                    className="text-gray-300 font-medium cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("description", studySort, setStudySort)}
-                                >
-                                  Description
-                                  <SortIndicator column="description" sortConfig={studySort} />
-                                </TableHead>
-                                <TableHead
-                                    className="text-gray-300 font-medium text-center cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() =>
-                                        handleSort("interactiveResponseTechnologies.length", studySort, setStudySort)
-                                    }
-                                >
-                                  IRTs
-                                  <SortIndicator column="interactiveResponseTechnologies.length" sortConfig={studySort} />
-                                </TableHead>
-                                <TableHead
-                                    className="text-gray-300 font-medium text-center cursor-pointer select-none hover:text-white transition-colors duration-200"
-                                    onClick={() => handleSort("tasks.length", studySort, setStudySort)}
-                                >
-                                  Tasks
-                                  <SortIndicator column="tasks.length" sortConfig={studySort} />
-                                </TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {sortedStudies.map((study, index) => (
-                                  <TableRow
-                                      key={study.studyId || index}
-                                      className="border-b border-white/5 hover:bg-white/5 transition-all duration-200"
-                                      style={{ animationDelay: `${index * 50}ms` }}
-                                  >
-                                    <TableCell className="font-semibold text-gray-100">{study.name}</TableCell>
-                                    <TableCell className="font-medium text-gray-300">{study.client?.name || "—"}</TableCell>
-                                    <TableCell>
-                                      <Badge
-                                          variant="outline"
-                                          className="font-mono bg-purple-500/10 border-purple-400/30 text-purple-300"
-                                      >
-                                        {study.protocol}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell className="max-w-[300px]">
-                                      <p className="truncate text-sm text-gray-400">{study.description}</p>
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                      <Badge variant="outline" className="font-mono bg-purple-500/10 border-purple-400/30 text-purple-300">
-                                        {study.interactiveResponseTechnologies?.length || 0}
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                      <Badge variant="outline" className="font-mono bg-purple-500/10 border-purple-400/30 text-purple-300">
-                                        {study.tasks?.length || 0}
-                                      </Badge>
-                                    </TableCell>
-                                  </TableRow>
-                              ))}
-                            </TableBody>
-                          </Table>
-                        </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
           </PageShell>
         </div>
 
