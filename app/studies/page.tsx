@@ -21,7 +21,6 @@ import { useRouter } from "next/navigation"
 import { useStudies, useIRTs, useTrialManagers } from "@/hooks"
 import { PageHeader } from "@/components/page-header"
 import { PageShell } from "@/components/page-shell"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -29,6 +28,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { ExternalLink, Search, Plus, FileText, Beaker, ChevronUp, ChevronDown, TrendingUp, Database, Sparkles, Activity, BarChart3 } from 'lucide-react'
+import { GlassButton } from "@/components/glass"
 
 // Define sort types
 type SortDirection = "asc" | "desc"
@@ -174,16 +174,10 @@ export default function StudiesPage() {
                     className="relative pl-10 bg-white/10 backdrop-blur-md border-white/20 text-white placeholder:text-gray-400 focus:bg-white/15 focus:border-white/30 transition-all duration-300"
                 />
               </div>
-              <Button
-                  className="relative group overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 border border-white/20"
-                  onClick={() => router.push('/studies/new')}
-              >
-              <span className="relative z-10 flex items-center">
+              <GlassButton onClick={() => router.push('/studies/new')}>
                 <Plus className="mr-2 h-4 w-4" />
                 New Study
-              </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-              </Button>
+              </GlassButton>
             </div>
           </PageHeader>
 
@@ -297,8 +291,7 @@ export default function StudiesPage() {
                           <Beaker className="h-5 w-5 text-blue-400" />
                         </div>
                         <div className="flex flex-col items-start">
-                          <span className="font-semibold text-sm">Interactive Response</span>
-                          <span className="font-semibold text-sm">Technologies</span>
+                          <span className="font-semibold text-sm">Interactive Response Technologies</span>
                         </div>
                         <Badge className="ml-auto bg-blue-500/30 text-blue-200 border-blue-400/40 backdrop-blur-sm shadow-lg">
                           {totalIRTs}
@@ -318,8 +311,7 @@ export default function StudiesPage() {
                           <FileText className="h-5 w-5 text-emerald-400" />
                         </div>
                         <div className="flex flex-col items-start">
-                          <span className="font-semibold text-sm">Trial</span>
-                          <span className="font-semibold text-sm">Managers</span>
+                          <span className="font-semibold text-sm">Trial Managers</span>
                         </div>
                         <Badge className="ml-auto bg-emerald-500/30 text-emerald-200 border-emerald-400/40 backdrop-blur-sm shadow-lg">
                           {totalTMs}
@@ -339,8 +331,7 @@ export default function StudiesPage() {
                           <Database className="h-5 w-5 text-purple-400" />
                         </div>
                         <div className="flex flex-col items-start">
-                          <span className="font-semibold text-sm">Studies</span>
-                          <span className="font-semibold text-sm">Overview</span>
+                          <span className="font-semibold text-sm">Studies Overview</span>
                         </div>
                         <Badge className="ml-auto bg-purple-500/30 text-purple-200 border-purple-400/40 backdrop-blur-sm shadow-lg">
                           {totalStudies}
@@ -375,10 +366,10 @@ export default function StudiesPage() {
                             <p className="text-sm text-gray-400 max-w-sm">
                               {searchQuery ? "No IRTs match your search criteria" : "Get started by creating your first IRT"}
                             </p>
-                            <Button className="mt-6 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
+                            <GlassButton className="mt-6 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
                               <Plus className="mr-2 h-4 w-4" />
                               Create IRT
-                            </Button>
+                            </GlassButton>
                           </div>
                       ) : (
                           <div className="overflow-hidden">
@@ -446,7 +437,7 @@ export default function StudiesPage() {
                                       </TableCell>
                                       <TableCell className="text-right">
                                         {irt.webLink && (
-                                            <Button
+                                            <GlassButton
                                                 size="sm"
                                                 variant="outline"
                                                 onClick={() => window.open(irt.webLink, "_blank")}
@@ -454,7 +445,7 @@ export default function StudiesPage() {
                                             >
                                               <ExternalLink className="mr-2 h-3.5 w-3.5" />
                                               View
-                                            </Button>
+                                            </GlassButton>
                                         )}
                                       </TableCell>
                                     </TableRow>
@@ -494,10 +485,10 @@ export default function StudiesPage() {
                                   ? "No Trial Managers match your search criteria"
                                   : "Get started by creating your first Trial Manager"}
                             </p>
-                            <Button className="mt-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
+                            <GlassButton className="mt-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700">
                               <Plus className="mr-2 h-4 w-4" />
                               Create Trial Manager
-                            </Button>
+                            </GlassButton>
                           </div>
                       ) : (
                           <div className="overflow-hidden">
@@ -575,7 +566,7 @@ export default function StudiesPage() {
                                       </TableCell>
                                       <TableCell className="text-right">
                                         {tm.webLink && (
-                                            <Button
+                                            <GlassButton
                                                 size="sm"
                                                 variant="outline"
                                                 onClick={() => window.open(tm.webLink, "_blank")}
@@ -583,7 +574,7 @@ export default function StudiesPage() {
                                             >
                                               <ExternalLink className="mr-2 h-3.5 w-3.5" />
                                               View
-                                            </Button>
+                                            </GlassButton>
                                         )}
                                       </TableCell>
                                     </TableRow>
@@ -621,13 +612,13 @@ export default function StudiesPage() {
                                   ? "No studies match your search criteria"
                                   : "Get started by creating your first study"}
                             </p>
-                            <Button
+                            <GlassButton
                                 className="mt-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                                 onClick={() => router.push('/studies/new')}
                             >
                               <Plus className="mr-2 h-4 w-4" />
                               Create Study
-                            </Button>
+                            </GlassButton>
                           </div>
                       ) : (
                           <div className="overflow-hidden">
