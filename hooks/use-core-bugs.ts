@@ -1,3 +1,4 @@
+// hooks/use-core-bugs.ts
 import { useRepositories } from "@/repositories"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useApiMutation } from "@/hooks/use-api-mutation"
@@ -12,11 +13,11 @@ export function useCoreBugs(params?: CoreBugQueryParams) {
   const createMutation = useApiMutation((data: CreateCoreBugDto) => coreBugs.create(data))
 
   const updateMutation = useApiMutation(({ id, data }: { id: string; data: UpdateCoreBugDto }) =>
-    coreBugs.update(id, data),
+      coreBugs.update(id, data),
   )
 
   const assessMutation = useApiMutation(({ id, assessment }: { id: string; assessment: BugAssessmentDto }) =>
-    coreBugs.assess(id, assessment),
+      coreBugs.assess(id, assessment),
   )
 
   const importMutation = useApiMutation((file: File) => coreBugs.importFromXml(file))

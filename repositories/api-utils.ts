@@ -1,57 +1,78 @@
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status?: number,
-    public response?: Response,
-  ) {
-    super(message)
-    this.name = "ApiError"
-  }
-}
-
-export function isApiError(error: any): error is ApiError {
-  return error instanceof ApiError
-}
-
-// Utility functions for common operations
-export const ApiUtils = {
-  // Format date for API calls
-  formatDate(date: Date): string {
-    return date.toISOString()
-  },
-
-  // Parse date from API response
-  parseDate(dateString: string): Date {
-    return new Date(dateString)
-  },
-
-  // Build enum query parameter
-  buildEnumParam<T extends Record<string, string>>(enumValue: T[keyof T] | undefined): string | undefined {
-    return enumValue as string | undefined
-  },
-
-  // Validate GUID format
-  isValidGuid(guid: string): boolean {
-    const guidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-    return guidRegex.test(guid)
-  },
-
-  // Download file from blob response
-  downloadFile(blob: Blob, filename: string): void {
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement("a")
+// repositories/api-utils.ts
+export class ApiUtils {
+  static downloadFile(blob: Blob, filename: string) {
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
     link.href = url
     link.download = filename
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-  },
+    URL.revokeObjectURL(url)
+  }
 
-  // Handle file upload
-  createFileFormData(file: File, fieldName = "file"): FormData {
-    const formData = new FormData()
-    formData.append(fieldName, file)
-    return formData
-  },
+  static handleApiError(error: any): string {
+    if (error?.response?.data?.message) {
+      return error.response.data.message
+    }
+    if (error?.message) {
+      return error.message
+    }
+    return 'An unexpected error occurred'
+  }
+
+  static buildQueryString(params: Record<string, any>): string {
+    const searchParams = new URLSearchParams()
+
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        if (Array.isArray(value)) {
+          value.forEach(item => searchParams.append(key, item.toString()))
+        } else {
+          searchParams.append(key, value.toString())
+        }
+      }
+    })
+
+    return searchParams.toString()
+  }
+
+  static isValidUrl(string: string): boolean {
+    try {
+      new URL(string)
+      return true
+    } catch (_) {
+      return false
+    }
+  }
+
+  static formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes'
+
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  static validateFile(file: File, allowedTypes: string[], maxSize?: number): { isValid: boolean; error?: string } {
+    // Check file type
+    if (!allowedTypes.includes(file.type) && !allowedTypes.some(type => file.name.endsWith(type.replace('*/', '.')))) {
+      return {
+        isValid: false,
+        error: `Invalid file type. Allowed types: ${allowedTypes.join(', ')}`
+      }
+    }
+
+    // Check file size
+    if (maxSize && file.size > maxSize) {
+      return {
+        isValid: false,
+        error: `File size too large. Maximum size is ${this.formatFileSize(maxSize)}`
+      }
+    }
+
+    return { isValid: true }
+  }
 }
