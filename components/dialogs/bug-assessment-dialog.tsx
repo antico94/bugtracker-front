@@ -198,10 +198,15 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
     if (!isOpen || !bug) return null
 
     const selectedProduct = productTypeOptions.find(p => p.value === assessmentData.assessedProductType)
-    const colorMap = {
+    const colorMap: Record<string, string> = {
         blue: "from-blue-600/20 to-cyan-600/20",
         purple: "from-purple-600/20 to-pink-600/20",
         emerald: "from-emerald-600/20 to-teal-600/20"
+    }
+
+    const getColorClass = (color: string | undefined): string => {
+        const validColor = color && colorMap[color] ? color : 'emerald'
+        return colorMap[validColor]
     }
 
     return (
@@ -214,7 +219,7 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
 
             {/* Dialog */}
             <div className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden">
-                <div className={`absolute inset-0 bg-gradient-to-r ${colorMap[selectedProduct?.color || 'emerald']} rounded-2xl blur-xl`}></div>
+                <div className={`absolute inset-0 bg-gradient-to-r ${getColorClass(selectedProduct?.color)} rounded-2xl blur-xl`}></div>
                 <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                     <CardHeader className="border-b border-white/10 bg-gradient-to-r from-green-600/10 to-emerald-600/10 backdrop-blur-sm shrink-0">
                         <div className="flex items-center justify-between">

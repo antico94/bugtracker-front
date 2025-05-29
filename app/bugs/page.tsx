@@ -142,9 +142,11 @@ export default function BugsPage() {
     }
   }
 
-  const handleCreateBug = async (data: CreateCoreBugDto) => {
+  const handleCreateBug = async (data: CreateCoreBugDto | UpdateCoreBugDto) => {
     try {
-      await create(data)
+      // For create, we need to ensure we have the required fields
+      const createData = data as CreateCoreBugDto
+      await create(createData)
       toast({
         title: "Bug Created",
         description: "Bug has been created successfully",
@@ -161,10 +163,18 @@ export default function BugsPage() {
     }
   }
 
-  const handleUpdateBug = async (data: UpdateCoreBugDto) => {
+  const handleUpdateBug = async (data: CreateCoreBugDto | UpdateCoreBugDto) => {
     if (!editingBug) return
     try {
-      await update({ id: editingBug.bugId, data })
+      // For update, we only need the UpdateCoreBugDto fields
+      const updateData: UpdateCoreBugDto = {
+        bugTitle: data.bugTitle,
+        bugDescription: data.bugDescription,
+        severity: data.severity,
+        foundInBuild: data.foundInBuild,
+        affectedVersions: data.affectedVersions,
+      }
+      await update({ id: editingBug.bugId, data: updateData })
       toast({
         title: "Bug Updated",
         description: "Bug has been updated successfully",
