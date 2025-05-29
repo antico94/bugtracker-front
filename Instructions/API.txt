@@ -2334,14 +2334,13 @@
       },
       "BugSeverity": {
         "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
+          "Critical",
+          "Major",
+          "Moderate",
+          "Minor",
+          "None"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "BulkImportResultDto": {
         "type": "object",
@@ -3028,13 +3027,12 @@
       },
       "ExternalModuleType": {
         "enum": [
-          0,
-          1,
-          2,
-          3
+          "DrugAccountability",
+          "Rollover",
+          "Fisher",
+          "Randomization"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "IRTBasicDto": {
         "type": "object",
@@ -3171,12 +3169,11 @@
       },
       "ProductType": {
         "enum": [
-          0,
-          1,
-          2
+          "InteractiveResponseTechnology",
+          "TM",
+          "ExternalModule"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "RemoveBugsFromWeeklyDto": {
         "required": [
@@ -3201,12 +3198,11 @@
       },
       "Status": {
         "enum": [
-          0,
-          1,
-          2
+          "New",
+          "InProgress",
+          "Done"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "StudyBasicDto": {
         "type": "object",
