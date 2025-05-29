@@ -475,7 +475,6 @@ export default function BugsPage() {
   )
 }
 
-// Separate Bug List Component
 function BugList({ bugs, onEdit, onAssess, onDelete, getStatusIcon, getStatusColor }: {
   bugs: CoreBugResponseDto[]
   onEdit: (bug: CoreBugResponseDto) => void
@@ -582,6 +581,8 @@ function BugList({ bugs, onEdit, onAssess, onDelete, getStatusIcon, getStatusCol
                           {new Date(bug.createdAt).toLocaleDateString()}
                         </div>
                       </div>
+
+                      {/* Desktop Actions with Conditional Logic */}
                       <div className="col-span-3 flex items-center justify-end gap-2">
                         <Button
                             size="sm"
@@ -591,15 +592,37 @@ function BugList({ bugs, onEdit, onAssess, onDelete, getStatusIcon, getStatusCol
                           <ExternalLink className="mr-2 h-3.5 w-3.5" />
                           View
                         </Button>
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => onEdit(bug)}
-                            className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-400/30 text-blue-300 hover:text-blue-200 transition-all duration-200"
-                        >
-                          <Edit className="mr-2 h-3.5 w-3.5" />
-                          Edit
-                        </Button>
+
+                        {/* Conditional Edit Button */}
+                        {bug.isAssessed ? (
+                            <div className="relative group">
+                              <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled
+                                  className="bg-gray-500/10 border-gray-400/30 text-gray-500 cursor-not-allowed"
+                              >
+                                <Edit className="mr-2 h-3.5 w-3.5" />
+                                Edit
+                              </Button>
+                              {/* Tooltip */}
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
+                                Cannot edit assessed bugs - would affect generated tasks
+                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                              </div>
+                            </div>
+                        ) : (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => onEdit(bug)}
+                                className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-400/30 text-blue-300 hover:text-blue-200 transition-all duration-200"
+                            >
+                              <Edit className="mr-2 h-3.5 w-3.5" />
+                              Edit
+                            </Button>
+                        )}
+
                         {!bug.isAssessed && (
                             <Button
                                 size="sm"
@@ -611,6 +634,7 @@ function BugList({ bugs, onEdit, onAssess, onDelete, getStatusIcon, getStatusCol
                               Assess
                             </Button>
                         )}
+
                         <Button
                             size="sm"
                             variant="outline"
@@ -672,9 +696,9 @@ function BugList({ bugs, onEdit, onAssess, onDelete, getStatusIcon, getStatusCol
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-400">Tasks:</span>
                           <span className="text-sm">
-                        <span className="text-white font-medium">{bug.completedTaskCount}</span>
-                        <span className="text-gray-400">/{bug.taskCount}</span>
-                      </span>
+                            <span className="text-white font-medium">{bug.completedTaskCount}</span>
+                            <span className="text-gray-400">/{bug.taskCount}</span>
+                          </span>
                           {bug.taskCount > 0 && (
                               <div className="w-16 bg-white/10 rounded-full h-1">
                                 <div
@@ -686,15 +710,37 @@ function BugList({ bugs, onEdit, onAssess, onDelete, getStatusIcon, getStatusCol
                               </div>
                           )}
                         </div>
+
+                        {/* Mobile Actions with Conditional Logic */}
                         <div className="flex items-center gap-2">
-                          <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => onEdit(bug)}
-                              className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-400/30 text-blue-300 hover:text-blue-200 transition-all duration-200"
-                          >
-                            <Edit className="h-3.5 w-3.5" />
-                          </Button>
+                          {/* Conditional Edit Button for Mobile */}
+                          {bug.isAssessed ? (
+                              <div className="relative group">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    disabled
+                                    className="bg-gray-500/10 border-gray-400/30 text-gray-500 cursor-not-allowed"
+                                >
+                                  <Edit className="h-3.5 w-3.5" />
+                                </Button>
+                                {/* Mobile Tooltip */}
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-50">
+                                  Cannot edit assessed
+                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                                </div>
+                              </div>
+                          ) : (
+                              <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => onEdit(bug)}
+                                  className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-400/30 text-blue-300 hover:text-blue-200 transition-all duration-200"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                              </Button>
+                          )}
+
                           {!bug.isAssessed && (
                               <Button
                                   size="sm"
@@ -705,6 +751,7 @@ function BugList({ bugs, onEdit, onAssess, onDelete, getStatusIcon, getStatusCol
                                 <CheckSquare className="h-3.5 w-3.5" />
                               </Button>
                           )}
+
                           <Button
                               size="sm"
                               variant="outline"
