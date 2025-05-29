@@ -16,6 +16,7 @@ import type { Status, CoreBugQueryParams, CreateCoreBugDto, UpdateCoreBugDto, Bu
 import BugFormDialog from "@/components/dialogs/bug-form-dialog"
 import { BugFilterDialog } from "@/components/dialogs/bug-filter-dialog"
 import { BugAssessmentDialog } from "@/components/dialogs/bug-assessment-dialog"
+import {GlassButton} from "@/components/glass";
 
 export default function BugsPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -57,7 +58,6 @@ export default function BugsPage() {
     new: bugs?.filter((b) => b.status === ("New" as Status))?.length || 0,
     inProgress: bugs?.filter((b) => b.status === ("InProgress" as Status))?.length || 0,
     done: bugs?.filter((b) => b.status === ("Done" as Status))?.length || 0,
-    critical: bugs?.filter((b) => b.severity === 0)?.length || 0,
     unassessed: bugs?.filter((b) => !b.isAssessed)?.length || 0,
   }
 
@@ -299,23 +299,17 @@ export default function BugsPage() {
                   <Download className="mr-2 h-4 w-4" />
                   Export
                 </Button>
-                <Button
-                    onClick={() => setShowCreateDialog(true)}
-                    className="relative group overflow-hidden bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-xl hover:shadow-2xl transition-all duration-300 border border-white/20"
-                >
-                <span className="relative z-10 flex items-center">
+                <GlassButton onClick={() => setShowCreateDialog(true)} variant="primary">
                   <Plus className="mr-2 h-4 w-4" />
                   New Bug
-                </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-                </Button>
+                </GlassButton>
               </div>
             </div>
           </PageHeader>
 
           <PageShell className="py-8">
             {/* Statistics Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
               <StatsCard
                   title="Total Bugs"
                   value={stats.total}
@@ -342,13 +336,6 @@ export default function BugsPage() {
                   value={stats.done}
                   icon={CheckCircle2}
                   color="green"
-                  loading={loading}
-              />
-              <StatsCard
-                  title="Critical"
-                  value={stats.critical}
-                  icon={Bug}
-                  color="red"
                   loading={loading}
               />
               <StatsCard

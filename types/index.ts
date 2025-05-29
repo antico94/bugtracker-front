@@ -13,6 +13,14 @@ export enum BugSeverity {
   None = 4,
 }
 
+export const severityMap: Record<string, BugSeverity> = {
+  Critical: BugSeverity.Critical,
+  Major: BugSeverity.Major,
+  Moderate: BugSeverity.Moderate,
+  Minor: BugSeverity.Minor,
+  None: BugSeverity.None,
+};
+
 export enum ProductType {
   InteractiveResponseTechnology = "InteractiveResponseTechnology",
   TM = "TM",

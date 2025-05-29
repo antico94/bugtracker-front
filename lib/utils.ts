@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import {BugSeverity, severityMap} from "@/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -109,4 +110,16 @@ export function getSeverityColor(severity: number) {
     default:
       return 'bg-gray-500/20 text-gray-300 border-gray-400/30'
   }
+}
+
+export function getBugSeverity(severity: unknown): BugSeverity | undefined {
+  if (typeof severity === "number" && Object.values(BugSeverity).includes(severity)) {
+    return severity as BugSeverity;
+  }
+
+  if (typeof severity === "string") {
+    return severityMap[severity];
+  }
+
+  return undefined;
 }
