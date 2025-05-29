@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Upload, Download, Filter, Plus, Bug, ExternalLink, AlertTriangle, CheckCircle2, Clock, Edit, Trash2, CheckSquare, MoreHorizontal } from "lucide-react"
+import { Search, Upload, Download, Filter, Plus, Bug, ExternalLink, AlertTriangle, CheckCircle2, Clock, Edit, Trash2, CheckSquare } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { PageHeader } from "@/components/page-header"
@@ -14,15 +14,14 @@ import { useCoreBugs } from "@/hooks/use-core-bugs"
 import { toast } from "@/hooks/use-toast"
 import type { Status, CoreBugQueryParams, CreateCoreBugDto, UpdateCoreBugDto, BugAssessmentDto, CoreBugResponseDto } from "@/types"
 import BugFormDialog from "@/components/dialogs/bug-form-dialog"
-import {BugFilterDialog} from "@/components/dialogs/bug-filter-dialog";
-import {BugAssessmentDialog} from "@/components/dialogs/bug-assessment-dialog";
+import { BugFilterDialog } from "@/components/dialogs/bug-filter-dialog"
+import { BugAssessmentDialog } from "@/components/dialogs/bug-assessment-dialog"
 
 export default function BugsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [filters, setFilters] = useState<CoreBugQueryParams>({})
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showFilterDialog, setShowFilterDialog] = useState(false)
-  const [showAssessDialog, setShowAssessDialog] = useState(false)
   const [editingBug, setEditingBug] = useState<CoreBugResponseDto | null>(null)
   const [assessingBug, setAssessingBug] = useState<CoreBugResponseDto | null>(null)
 
@@ -100,6 +99,7 @@ export default function BugsPage() {
         title: "Bug Created",
         description: "Bug has been created successfully",
       })
+      setShowCreateDialog(false)
       refetch()
     } catch (error) {
       toast({
@@ -361,9 +361,7 @@ export default function BugsPage() {
             </div>
 
             {loading ? (
-                <div className="space-y-6">
-                  <BugTableSkeleton />
-                </div>
+                <BugTableSkeleton />
             ) : error ? (
                 <Card className="bg-red-900/20 backdrop-blur-xl border-red-500/30 shadow-2xl">
                   <CardContent className="pt-6">
@@ -407,248 +405,14 @@ export default function BugsPage() {
                   )}
                 </div>
             ) : (
-                <div className="group relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
-                  <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/15 overflow-hidden">
-                    <CardHeader className="border-b border-white/10 bg-gradient-to-r from-purple-600/10 to-blue-600/10 backdrop-blur-sm">
-                      <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                        <Bug className="h-5 w-5 text-purple-400" />
-                        Bug Reports
-                        <Badge className="ml-2 bg-purple-500/30 text-purple-200 border-purple-400/40">
-                          {filteredBugs.length} {(searchQuery || hasActiveFilters) && `of ${bugs?.length || 0}`}
-                        </Badge>
-                      </CardTitle>
-                      <CardDescription className="text-gray-300">
-                        {searchQuery || hasActiveFilters
-                            ? `Showing ${filteredBugs.length} bugs matching your criteria`
-                            : "Manage and track all bugs in the system"
-                        }
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      {/* Table Header */}
-                      <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-white/5 border-b border-white/10 text-sm font-medium text-gray-300">
-                        <div className="col-span-3">Bug Details</div>
-                        <div className="col-span-1">Severity</div>
-                        <div className="col-span-1">Status</div>
-                        <div className="col-span-1">Assessment</div>
-                        <div className="col-span-1">Tasks</div>
-                        <div className="col-span-2">Created</div>
-                        <div className="col-span-3 text-right">Actions</div>
-                      </div>
-
-                      {/* Bug List */}
-                      <div className="divide-y divide-white/5">
-                        {filteredBugs.map((bug, index) => (
-                            <div
-                                key={bug.bugId}
-                                className="p-4 hover:bg-white/5 transition-all duration-200"
-                                style={{ animationDelay: `${index * 50}ms` }}
-                            >
-                              {/* Desktop Layout */}
-                              <div className="hidden md:grid grid-cols-12 gap-4 items-center">
-                                <div className="col-span-3">
-                                  <div className="space-y-1">
-                                    <div className="font-medium text-white line-clamp-1">{bug.bugTitle}</div>
-                                    <div className="flex items-center gap-2">
-                                      {bug.jiraKey && (
-                                          <a
-                                              href={bug.jiraLink || "#"}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                                          >
-                                            {bug.jiraKey}
-                                            <ExternalLink className="h-3 w-3" />
-                                          </a>
-                                      )}
-                                    </div>
-                                    <div className="text-xs text-gray-400 line-clamp-2">{bug.bugDescription}</div>
-                                  </div>
-                                </div>
-                                <div className="col-span-1">
-                                  <BugSeverityBadge severity={bug.severity} />
-                                </div>
-                                <div className="col-span-1">
-                                  <Badge className={`flex items-center gap-1 ${getStatusColor(bug.status)}`}>
-                                    {getStatusIcon(bug.status)}
-                                    {bug.status}
-                                  </Badge>
-                                </div>
-                                <div className="col-span-1">
-                                  <Badge
-                                      variant={bug.isAssessed ? "default" : "secondary"}
-                                      className={bug.isAssessed
-                                          ? "bg-green-500/20 text-green-300 border-green-400/30"
-                                          : "bg-gray-500/20 text-gray-300 border-gray-400/30"
-                                      }
-                                  >
-                                    {bug.isAssessed ? "✓" : "·"}
-                                  </Badge>
-                                </div>
-                                <div className="col-span-1">
-                                  <div className="text-sm">
-                                    <span className="text-white font-medium">{bug.completedTaskCount}</span>
-                                    <span className="text-gray-400">/{bug.taskCount}</span>
-                                  </div>
-                                  {bug.taskCount > 0 && (
-                                      <div className="w-12 bg-white/10 rounded-full h-1 mt-1">
-                                        <div
-                                            className="h-1 bg-blue-500 rounded-full transition-all duration-300"
-                                            style={{
-                                              width: `${(bug.completedTaskCount / bug.taskCount) * 100}%`
-                                            }}
-                                        />
-                                      </div>
-                                  )}
-                                </div>
-                                <div className="col-span-2">
-                                  <div className="text-sm text-gray-400">
-                                    {new Date(bug.createdAt).toLocaleDateString()}
-                                  </div>
-                                </div>
-                                <div className="col-span-3 flex items-center justify-end gap-2">
-                                  <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="bg-white/5 hover:bg-white/10 border-white/20 text-gray-300 hover:text-white transition-all duration-200"
-                                  >
-                                    <ExternalLink className="mr-2 h-3.5 w-3.5" />
-                                    View
-                                  </Button>
-                                  <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => setEditingBug(bug)}
-                                      className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-400/30 text-blue-300 hover:text-blue-200 transition-all duration-200"
-                                  >
-                                    <Edit className="mr-2 h-3.5 w-3.5" />
-                                    Edit
-                                  </Button>
-                                  {!bug.isAssessed && (
-                                      <Button
-                                          size="sm"
-                                          variant="outline"
-                                          onClick={() => setAssessingBug(bug)}
-                                          className="bg-green-500/10 hover:bg-green-500/20 border-green-400/30 text-green-300 hover:text-green-200 transition-all duration-200"
-                                      >
-                                        <CheckSquare className="mr-2 h-3.5 w-3.5" />
-                                        Assess
-                                      </Button>
-                                  )}
-                                  <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => handleDeleteBug(bug.bugId)}
-                                      disabled={deleteLoading}
-                                      className="bg-red-500/10 hover:bg-red-500/20 border-red-400/30 text-red-300 hover:text-red-200 transition-all duration-200"
-                                  >
-                                    <Trash2 className="mr-2 h-3.5 w-3.5" />
-                                    Delete
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {/* Mobile Layout */}
-                              <div className="md:hidden space-y-3">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <div className="font-medium text-white mb-1">{bug.bugTitle}</div>
-                                    {bug.jiraKey && (
-                                        <a
-                                            href={bug.jiraLink || "#"}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                                        >
-                                          {bug.jiraKey}
-                                          <ExternalLink className="h-3 w-3" />
-                                        </a>
-                                    )}
-                                  </div>
-                                  <BugSeverityBadge severity={bug.severity} />
-                                </div>
-
-                                <div className="text-sm text-gray-400 line-clamp-2">
-                                  {bug.bugDescription}
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Badge className={`flex items-center gap-1 ${getStatusColor(bug.status)}`}>
-                                      {getStatusIcon(bug.status)}
-                                      {bug.status}
-                                    </Badge>
-                                    <Badge
-                                        variant={bug.isAssessed ? "default" : "secondary"}
-                                        className={bug.isAssessed
-                                            ? "bg-green-500/20 text-green-300 border-green-400/30"
-                                            : "bg-gray-500/20 text-gray-300 border-gray-400/30"
-                                        }
-                                    >
-                                      {bug.isAssessed ? "Assessed" : "Pending"}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-xs text-gray-400">
-                                    {new Date(bug.createdAt).toLocaleDateString()}
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm text-gray-400">Tasks:</span>
-                                    <span className="text-sm">
-                                <span className="text-white font-medium">{bug.completedTaskCount}</span>
-                                <span className="text-gray-400">/{bug.taskCount}</span>
-                              </span>
-                                    {bug.taskCount > 0 && (
-                                        <div className="w-16 bg-white/10 rounded-full h-1">
-                                          <div
-                                              className="h-1 bg-blue-500 rounded-full transition-all duration-300"
-                                              style={{
-                                                width: `${(bug.completedTaskCount / bug.taskCount) * 100}%`
-                                              }}
-                                          />
-                                        </div>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => setEditingBug(bug)}
-                                        className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-400/30 text-blue-300 hover:text-blue-200 transition-all duration-200"
-                                    >
-                                      <Edit className="h-3.5 w-3.5" />
-                                    </Button>
-                                    {!bug.isAssessed && (
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            onClick={() => setAssessingBug(bug)}
-                                            className="bg-green-500/10 hover:bg-green-500/20 border-green-400/30 text-green-300 hover:text-green-200 transition-all duration-200"
-                                        >
-                                          <CheckSquare className="h-3.5 w-3.5" />
-                                        </Button>
-                                    )}
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        onClick={() => handleDeleteBug(bug.bugId)}
-                                        disabled={deleteLoading}
-                                        className="bg-red-500/10 hover:bg-red-500/20 border-red-400/30 text-red-300 hover:text-red-200 transition-all duration-200"
-                                    >
-                                      <Trash2 className="h-3.5 w-3.5" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                <BugList
+                    bugs={filteredBugs}
+                    onEdit={setEditingBug}
+                    onAssess={setAssessingBug}
+                    onDelete={handleDeleteBug}
+                    getStatusIcon={getStatusIcon}
+                    getStatusColor={getStatusColor}
+                />
             )}
           </PageShell>
         </div>
@@ -685,28 +449,278 @@ export default function BugsPage() {
         />
 
         <style jsx>{`
-        @keyframes blob {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob { animation: blob 7s infinite; }
-        .animation-delay-2000 { animation-delay: 2s; }
-        .animation-delay-4000 { animation-delay: 4s; }
-        .line-clamp-1 {
-          overflow: hidden;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 1;
-        }
-        .line-clamp-2 {
-          overflow: hidden;
-          display: -webkit-box;
-          -webkit-box-orient: vertical;
-          -webkit-line-clamp: 2;
-        }
-      `}</style>
+          @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+          }
+          .animate-blob { animation: blob 7s infinite; }
+          .animation-delay-2000 { animation-delay: 2s; }
+          .animation-delay-4000 { animation-delay: 4s; }
+          .line-clamp-1 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+          }
+          .line-clamp-2 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+          }
+        `}</style>
+      </div>
+  )
+}
+
+// Separate Bug List Component
+function BugList({ bugs, onEdit, onAssess, onDelete, getStatusIcon, getStatusColor }: {
+  bugs: CoreBugResponseDto[]
+  onEdit: (bug: CoreBugResponseDto) => void
+  onAssess: (bug: CoreBugResponseDto) => void
+  onDelete: (bugId: string) => void
+  getStatusIcon: (status: string) => React.ReactNode
+  getStatusColor: (status: string) => string
+}) {
+  return (
+      <div className="group relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+        <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl hover:shadow-3xl transition-all duration-300 hover:bg-white/15 overflow-hidden">
+          <CardHeader className="border-b border-white/10 bg-gradient-to-r from-purple-600/10 to-blue-600/10 backdrop-blur-sm">
+            <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+              <Bug className="h-5 w-5 text-purple-400" />
+              Bug Reports
+              <Badge className="ml-2 bg-purple-500/30 text-purple-200 border-purple-400/40">
+                {bugs.length}
+              </Badge>
+            </CardTitle>
+            <CardDescription className="text-gray-300">
+              Manage and track all bugs in the system
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            {/* Table Header */}
+            <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-white/5 border-b border-white/10 text-sm font-medium text-gray-300">
+              <div className="col-span-3">Bug Details</div>
+              <div className="col-span-1">Severity</div>
+              <div className="col-span-1">Status</div>
+              <div className="col-span-1">Assessment</div>
+              <div className="col-span-1">Tasks</div>
+              <div className="col-span-2">Created</div>
+              <div className="col-span-3 text-right">Actions</div>
+            </div>
+
+            {/* Bug List */}
+            <div className="divide-y divide-white/5">
+              {bugs.map((bug, index) => (
+                  <div
+                      key={bug.bugId}
+                      className="p-4 hover:bg-white/5 transition-all duration-200"
+                      style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    {/* Desktop Layout */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                      <div className="col-span-3">
+                        <div className="space-y-1">
+                          <div className="font-medium text-white line-clamp-1">{bug.bugTitle}</div>
+                          <div className="flex items-center gap-2">
+                            {bug.jiraKey && (
+                                <a
+                                    href={bug.jiraLink || "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                >
+                                  {bug.jiraKey}
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                            )}
+                          </div>
+                          <div className="text-xs text-gray-400 line-clamp-2">{bug.bugDescription}</div>
+                        </div>
+                      </div>
+                      <div className="col-span-1">
+                        <BugSeverityBadge severity={bug.severity} />
+                      </div>
+                      <div className="col-span-1">
+                        <Badge className={`flex items-center gap-1 ${getStatusColor(bug.status)}`}>
+                          {getStatusIcon(bug.status)}
+                          {bug.status}
+                        </Badge>
+                      </div>
+                      <div className="col-span-1">
+                        <Badge
+                            variant={bug.isAssessed ? "default" : "secondary"}
+                            className={bug.isAssessed
+                                ? "bg-green-500/20 text-green-300 border-green-400/30"
+                                : "bg-gray-500/20 text-gray-300 border-gray-400/30"
+                            }
+                        >
+                          {bug.isAssessed ? "✓" : "·"}
+                        </Badge>
+                      </div>
+                      <div className="col-span-1">
+                        <div className="text-sm">
+                          <span className="text-white font-medium">{bug.completedTaskCount}</span>
+                          <span className="text-gray-400">/{bug.taskCount}</span>
+                        </div>
+                        {bug.taskCount > 0 && (
+                            <div className="w-12 bg-white/10 rounded-full h-1 mt-1">
+                              <div
+                                  className="h-1 bg-blue-500 rounded-full transition-all duration-300"
+                                  style={{
+                                    width: `${(bug.completedTaskCount / bug.taskCount) * 100}%`
+                                  }}
+                              />
+                            </div>
+                        )}
+                      </div>
+                      <div className="col-span-2">
+                        <div className="text-sm text-gray-400">
+                          {new Date(bug.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="col-span-3 flex items-center justify-end gap-2">
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-white/5 hover:bg-white/10 border-white/20 text-gray-300 hover:text-white transition-all duration-200"
+                        >
+                          <ExternalLink className="mr-2 h-3.5 w-3.5" />
+                          View
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onEdit(bug)}
+                            className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-400/30 text-blue-300 hover:text-blue-200 transition-all duration-200"
+                        >
+                          <Edit className="mr-2 h-3.5 w-3.5" />
+                          Edit
+                        </Button>
+                        {!bug.isAssessed && (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => onAssess(bug)}
+                                className="bg-green-500/10 hover:bg-green-500/20 border-green-400/30 text-green-300 hover:text-green-200 transition-all duration-200"
+                            >
+                              <CheckSquare className="mr-2 h-3.5 w-3.5" />
+                              Assess
+                            </Button>
+                        )}
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => onDelete(bug.bugId)}
+                            className="bg-red-500/10 hover:bg-red-500/20 border-red-400/30 text-red-300 hover:text-red-200 transition-all duration-200"
+                        >
+                          <Trash2 className="mr-2 h-3.5 w-3.5" />
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Mobile Layout */}
+                    <div className="md:hidden space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="font-medium text-white mb-1">{bug.bugTitle}</div>
+                          {bug.jiraKey && (
+                              <a
+                                  href={bug.jiraLink || "#"}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                              >
+                                {bug.jiraKey}
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                          )}
+                        </div>
+                        <BugSeverityBadge severity={bug.severity} />
+                      </div>
+
+                      <div className="text-sm text-gray-400 line-clamp-2">
+                        {bug.bugDescription}
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Badge className={`flex items-center gap-1 ${getStatusColor(bug.status)}`}>
+                            {getStatusIcon(bug.status)}
+                            {bug.status}
+                          </Badge>
+                          <Badge
+                              variant={bug.isAssessed ? "default" : "secondary"}
+                              className={bug.isAssessed
+                                  ? "bg-green-500/20 text-green-300 border-green-400/30"
+                                  : "bg-gray-500/20 text-gray-300 border-gray-400/30"
+                              }
+                          >
+                            {bug.isAssessed ? "Assessed" : "Pending"}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-gray-400">
+                          {new Date(bug.createdAt).toLocaleDateString()}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-400">Tasks:</span>
+                          <span className="text-sm">
+                        <span className="text-white font-medium">{bug.completedTaskCount}</span>
+                        <span className="text-gray-400">/{bug.taskCount}</span>
+                      </span>
+                          {bug.taskCount > 0 && (
+                              <div className="w-16 bg-white/10 rounded-full h-1">
+                                <div
+                                    className="h-1 bg-blue-500 rounded-full transition-all duration-300"
+                                    style={{
+                                      width: `${(bug.completedTaskCount / bug.taskCount) * 100}%`
+                                    }}
+                                />
+                              </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => onEdit(bug)}
+                              className="bg-blue-500/10 hover:bg-blue-500/20 border-blue-400/30 text-blue-300 hover:text-blue-200 transition-all duration-200"
+                          >
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          {!bug.isAssessed && (
+                              <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => onAssess(bug)}
+                                  className="bg-green-500/10 hover:bg-green-500/20 border-green-400/30 text-green-300 hover:text-green-200 transition-all duration-200"
+                              >
+                                <CheckSquare className="h-3.5 w-3.5" />
+                              </Button>
+                          )}
+                          <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => onDelete(bug.bugId)}
+                              className="bg-red-500/10 hover:bg-red-500/20 border-red-400/30 text-red-300 hover:text-red-200 transition-all duration-200"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
   )
 }

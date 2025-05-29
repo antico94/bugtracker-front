@@ -6,11 +6,11 @@ export enum Status {
 }
 
 export enum BugSeverity {
-  None = "None",
-  Minor = "Minor",
-  Moderate = "Moderate",
-  Major = "Major",
-  Critical = "Critical",
+  Critical = 0,
+  Major = 1,
+  Moderate = 2,
+  Minor = 3,
+  None = 4,
 }
 
 export enum ProductType {
