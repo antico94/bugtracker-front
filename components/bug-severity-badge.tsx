@@ -10,7 +10,6 @@ export function BugSeverityBadge({severity}: BugSeverityBadgeProps) {
     let badgeContent: string
     let variant: "default" | "destructive" | "outline" | "secondary" | null = null
     let className = ""
-    console.log(typeof severity)
     const severityValue = getBugSeverity(severity)
 
     switch (severityValue) {

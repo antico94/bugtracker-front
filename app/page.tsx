@@ -1,23 +1,22 @@
 "use client"
 
-import { useState } from "react"
-import { Upload, Download, Plus, Bug, CheckCircle2, Clock, AlertCircle, TrendingUp, Activity, BarChart3 } from 'lucide-react'
+import {useState} from "react"
+import {Activity, AlertCircle, BarChart3, Bug, CheckCircle2, Clock, Download, Plus, Upload} from 'lucide-react'
 import {
   AnimatedBackground,
+  GlassButton,
+  GlassCard,
   GlassPageHeader,
   GlassSearchBar,
-  GlassButton,
-  GlassStatsCard,
-  GlassCard,
-  GlassEmptyState
+  GlassStatsCard
 } from "@/components/glass"
-import { PageShell } from "@/components/page-shell"
-import { RecentBugsTable } from "@/components/recent-bugs-table"
-// import { ApiTest } from "@/components/api-test"
-import { useCoreBugs } from "@/hooks/use-core-bugs"
-import { useCurrentWeekCoreBugs, useWeekHelpers } from "@/hooks/use-weekly-core-bugs"
-import { toast } from "@/components/ui/use-toast"
-import type { Status } from "@/types"
+import {PageShell} from "@/components/page-shell"
+import {RecentBugsTable} from "@/components/recent-bugs-table"
+import {useCoreBugs} from "@/hooks/use-core-bugs"
+import {useCurrentWeekCoreBugs} from "@/hooks/use-weekly-core-bugs"
+import {toast} from "@/components/ui/use-toast"
+import {BugSeverity, Status} from "@/types"
+import {getBugSeverity} from "@/lib/utils";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -35,9 +34,13 @@ export default function Dashboard() {
     new: bugs?.filter((b) => b.status === ("New" as Status))?.length || 0,
     inProgress: bugs?.filter((b) => b.status === ("InProgress" as Status))?.length || 0,
     done: bugs?.filter((b) => b.status === ("Done" as Status))?.length || 0,
-    critical: bugs?.filter((b) => b.severity === 0)?.length || 0,
-    major: bugs?.filter((b) => b.severity === 1)?.length || 0,
+    critical: bugs?.filter((b) => getBugSeverity(b.severity) === BugSeverity.Critical)?.length || 0,
+    major: bugs?.filter((b) => getBugSeverity(b.severity) === BugSeverity.Major)?.length || 0,
+    moderate: bugs?.filter((b) => getBugSeverity(b.severity) === BugSeverity.Moderate)?.length || 0,
+    minor: bugs?.filter((b) => getBugSeverity(b.severity) === BugSeverity.Minor)?.length || 0,
+    none: bugs?.filter((b) => getBugSeverity(b.severity) === BugSeverity.None)?.length || 0,
   }
+
 
   // Get recent bugs (last 10)
   const recentBugs = bugs
@@ -245,18 +248,14 @@ export default function Dashboard() {
                         <div className="h-2 w-2 rounded-full bg-yellow-500" />
                         <span className="text-sm text-gray-300">Moderate</span>
                       </div>
-                      <span className="text-sm font-medium text-white">
-                      {loading ? "..." : bugs?.filter((b) => b.severity === 2).length || 0}
-                    </span>
+                      <span className="text-sm font-medium text-white">{loading ? "..." : stats.moderate}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-green-500" />
                         <span className="text-sm text-gray-300">Minor</span>
                       </div>
-                      <span className="text-sm font-medium text-white">
-                      {loading ? "..." : bugs?.filter((b) => b.severity === 3).length || 0}
-                    </span>
+                      <span className="text-sm font-medium text-white">{loading ? "..." : stats.minor}</span>
                     </div>
                   </div>
                 </GlassCard>
