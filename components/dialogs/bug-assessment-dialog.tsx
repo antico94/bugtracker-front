@@ -26,7 +26,6 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
         bugId: "",
         assessedProductType: "InteractiveResponseTechnology" as ProductType,
         assessedImpactedVersions: [],
-        assessedBy: "",
     })
 
     const [versionInput, setVersionInput] = useState("")
@@ -38,7 +37,6 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
                 bugId: bug.bugId,
                 assessedProductType: bug.assessedProductType || ("InteractiveResponseTechnology" as ProductType),
                 assessedImpactedVersions: bug.assessedImpactedVersions || [],
-                assessedBy: bug.assessedBy || "",
             })
         }
         setErrors({})
@@ -223,26 +221,6 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
                                                 </button>
                                             </Badge>
                                         ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Assessed By */}
-                            <div className="space-y-2">
-                                <Label htmlFor="assessedBy" className="text-white font-medium">
-                                    Assessed By
-                                </Label>
-                                <Input
-                                    id="assessedBy"
-                                    value={assessmentData.assessedBy}
-                                    onChange={handleAssessedByChange}
-                                    placeholder="Enter your name or ID"
-                                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:bg-white/15 focus:border-white/30"
-                                />
-                                {errors.assessedBy && (
-                                    <div className="flex items-center gap-1 text-red-400 text-sm">
-                                        <AlertTriangle className="h-3 w-3" />
-                                        {errors.assessedBy}
                                     </div>
                                 )}
                             </div>

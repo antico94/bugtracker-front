@@ -317,7 +317,6 @@ export interface BugAssessmentDto {
   bugId: string
   assessedProductType: ProductType
   assessedImpactedVersions: string[]
-  assessedBy?: string
 }
 
 export interface CoreBugResponseDto {
