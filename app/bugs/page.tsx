@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react" // Added useMemo
-import {useMemo, useState} from "react"
+import {useMemo, useState, useRef} from "react"
 import {
   AlertTriangle,
   Bug,
@@ -42,6 +42,7 @@ import {
   CreateCoreBugDto,
   Status,
   UpdateCoreBugDto,
+  ProductType,
 } from "@/types"
 import BugFormDialog from "@/components/dialogs/bug-form-dialog"
 import {BugFilterDialog} from "@/components/dialogs/bug-filter-dialog"
@@ -56,6 +57,9 @@ export default function BugsPage() {
   const [showFilterDialog, setShowFilterDialog] = useState(false)
   const [editingBug, setEditingBug] = useState<CoreBugResponseDto | null>(null)
   const [assessingBug, setAssessingBug] = useState<CoreBugResponseDto | null>(null)
+
+  // Ref for file input
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const {
     bugs, // This is now based on apiFilters only
@@ -134,29 +138,60 @@ export default function BugsPage() {
       event.target.value = ""
       refetch()
     } catch (err) {
+      console.error("Import failed:", err)
       toast({
         title: "Import Failed",
-        description: "Failed to import bugs. Please check the file format.",
+        description: err instanceof Error ? err.message : "Failed to import bugs. Please check the file format.",
         variant: "destructive",
       })
     }
   }
 
-  const handleCreateBug = async (data: CreateCoreBugDto | UpdateCoreBugDto) => {
+  const handleCreateBug = async (
+      data: CreateCoreBugDto | UpdateCoreBugDto,
+      assessmentData?: { productType: ProductType; versions: string[] }
+  ) => {
     try {
       // For create, we need to ensure we have the required fields
       const createData = data as CreateCoreBugDto
-      await create(createData)
-      toast({
-        title: "Bug Created",
-        description: "Bug has been created successfully",
-      })
+      const createdBug = await create(createData)
+
+      // If this is a manually created bug, auto-assess it
+      if (assessmentData && createdBug) {
+        try {
+          const assessment: BugAssessmentDto = {
+            bugId: createdBug.bugId,
+            assessedProductType: assessmentData.productType,
+            assessedImpactedVersions: assessmentData.versions,
+          }
+          await assess({ id: createdBug.bugId, assessment })
+
+          toast({
+            title: "Bug Created & Assessed",
+            description: "Bug has been created and automatically assessed successfully",
+          })
+        } catch (assessError) {
+          console.error("Auto-assessment failed:", assessError)
+          toast({
+            title: "Bug Created",
+            description: "Bug created successfully, but auto-assessment failed. You can assess it manually.",
+            variant: "destructive",
+          })
+        }
+      } else {
+        toast({
+          title: "Bug Created",
+          description: "Bug has been created successfully",
+        })
+      }
+
       setShowCreateDialog(false)
       refetch()
     } catch (err) {
+      console.error("Bug creation failed:", err)
       toast({
         title: "Creation Failed",
-        description: "Failed to create bug. Please try again.",
+        description: err instanceof Error ? err.message : "Failed to create bug. Please try again.",
         variant: "destructive",
       })
       throw err
@@ -329,6 +364,10 @@ export default function BugsPage() {
     toast({ title: "UI Filter Changed", description: toastMessage })
   }
 
+  const triggerFileInput = () => {
+    fileInputRef.current?.click()
+  }
+
   return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 relative overflow-hidden">
         <div className="absolute inset-0">
@@ -353,24 +392,26 @@ export default function BugsPage() {
                 />
               </div>
               <div className="flex items-center gap-2">
-                <div className="relative">
-                  <input
-                      type="file"
-                      accept=".xml"
-                      onChange={handleFileImport}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      disabled={importLoading}
-                  />
-                  <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={importLoading}
-                      className="bg-slate-800/50 backdrop-blur-md border border-slate-700/80 text-gray-300 hover:bg-slate-700/70 hover:border-slate-600/90 hover:text-white transition-all duration-300"
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    {importLoading ? "Importing..." : "Import XML"}
-                  </Button>
-                </div>
+                {/* Hidden file input */}
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xml"
+                    onChange={handleFileImport}
+                    className="hidden"
+                />
+
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={triggerFileInput}
+                    disabled={importLoading}
+                    className="bg-slate-800/50 backdrop-blur-md border border-slate-700/80 text-gray-300 hover:bg-slate-700/70 hover:border-slate-600/90 hover:text-white transition-all duration-300"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {importLoading ? "Importing..." : "Import XML"}
+                </Button>
+
                 <Button
                     variant="outline"
                     size="sm"
@@ -486,13 +527,23 @@ export default function BugsPage() {
                         : "Get started by creating your first bug report or importing from XML"}
                   </p>
                   {!(searchQuery || uiFilters.status || uiFilters.isAssessed !== undefined || hasActiveApiFilters) && (
-                      <GlassButton
-                          onClick={() => setShowCreateDialog(true)}
-                          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Bug
-                      </GlassButton>
+                      <div className="flex gap-3">
+                        <GlassButton
+                            onClick={() => setShowCreateDialog(true)}
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create Bug
+                        </GlassButton>
+                        <GlassButton
+                            variant="outline"
+                            onClick={triggerFileInput}
+                            disabled={importLoading}
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          Import XML
+                        </GlassButton>
+                      </div>
                   )}
                 </div>
             ) : (
@@ -512,7 +563,7 @@ export default function BugsPage() {
             isOpen={showCreateDialog}
             onClose={() => setShowCreateDialog(false)}
             onSubmit={handleCreateBug}
-            loading={createLoading}
+            loading={createLoading || assessLoading}
         />
         <BugFormDialog
             isOpen={!!editingBug}

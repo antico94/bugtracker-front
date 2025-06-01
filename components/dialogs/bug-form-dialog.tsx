@@ -15,7 +15,7 @@ import {BugSeverity, CoreBugResponseDto, CreateCoreBugDto, ProductType, UpdateCo
 interface BugFormDialogProps {
     isOpen: boolean
     onClose: () => void
-    onSubmit: (data: CreateCoreBugDto | UpdateCoreBugDto) => Promise<void>
+    onSubmit: (data: CreateCoreBugDto | UpdateCoreBugDto, assessmentData?: { productType: ProductType; versions: string[] }) => Promise<void>
     bug?: CoreBugResponseDto
     loading?: boolean
 }
@@ -256,6 +256,11 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
             newErrors.bugDescription = "Bug description is required"
         }
 
+        // For new bugs, require at least one version if creating manually
+        if (!bug && selectedVersions.size === 0) {
+            newErrors.versions = "At least one affected version is required for manual bug creation"
+        }
+
         setErrors(newErrors)
         return Object.keys(newErrors).length === 0
     }
@@ -283,8 +288,14 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
             affectedVersions: formData.affectedVersions.length > 0 ? formData.affectedVersions : undefined,
         }
 
+        // For new bugs, include assessment data for auto-assessment
+        const assessmentData = !bug ? {
+            productType,
+            versions: Array.from(selectedVersions)
+        } : undefined
+
         try {
-            await onSubmit(submitData)
+            await onSubmit(submitData, assessmentData)
             onClose()
         } catch (error) {
             console.error("Failed to submit bug form:", error)
@@ -300,7 +311,8 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
         return formData.bugTitle.trim() &&
             formData.jiraKey.trim() &&
             formData.jiraLink.trim() &&
-            formData.bugDescription.trim()
+            formData.bugDescription.trim() &&
+            (bug || selectedVersions.size > 0) // For new bugs, require versions
     }
 
     return (
@@ -326,7 +338,7 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                                         {bug ? "Edit Bug" : "Create New Bug"}
                                     </CardTitle>
                                     <CardDescription className="text-gray-300">
-                                        {bug ? "Update bug information" : "Add a new bug to the system"}
+                                        {bug ? "Update bug information" : "Add a new bug to the system (will be auto-assessed)"}
                                     </CardDescription>
                                 </div>
                             </div>
@@ -351,6 +363,19 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                                         <span className="font-medium">Submission Error</span>
                                     </div>
                                     <p className="text-red-300 text-sm mt-1">{errors.submit}</p>
+                                </div>
+                            )}
+
+                            {/* Auto-Assessment Notice for New Bugs */}
+                            {!bug && (
+                                <div className="p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                                    <div className="flex items-center gap-2 text-green-300">
+                                        <Info className="h-4 w-4" />
+                                        <span className="font-medium">Auto-Assessment</span>
+                                    </div>
+                                    <p className="text-green-300 text-sm mt-1">
+                                        This bug will be automatically assessed with the product type and versions you select below.
+                                    </p>
                                 </div>
                             )}
 
@@ -494,12 +519,14 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2 mb-4">
                                     <Package className="h-5 w-5 text-purple-400" />
-                                    <h3 className="text-lg font-semibold text-white">Affected Versions</h3>
+                                    <h3 className="text-lg font-semibold text-white">
+                                        Affected Versions {!bug && <span className="text-red-400">*</span>}
+                                    </h3>
                                 </div>
 
                                 {/* Product Type Selection */}
                                 <div className="space-y-3">
-                                    <Label className="text-white font-medium">Product Type</Label>
+                                    <Label className="text-white font-medium">Product Type {!bug && <span className="text-red-400">*</span>}</Label>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         {productTypeOptions.map((option) => (
                                             <button
@@ -633,6 +660,7 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                                     <div className="flex items-center justify-between">
                                         <Label className="text-white font-medium">
                                             Available Versions ({selectedVersions.size} selected)
+                                            {!bug && selectedVersions.size === 0 && <span className="text-red-400 ml-1">*</span>}
                                         </Label>
                                         {versionsLoading && (
                                             <div className="flex items-center gap-2 text-sm text-gray-400">
@@ -641,6 +669,13 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                                             </div>
                                         )}
                                     </div>
+
+                                    {errors.versions && (
+                                        <div className="flex items-center gap-2 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+                                            <AlertTriangle className="h-4 w-4 text-red-400" />
+                                            <span className="text-sm text-red-300">{errors.versions}</span>
+                                        </div>
+                                    )}
 
                                     {/* Version grid */}
                                     {availableVersions && availableVersions.length > 0 ? (
@@ -753,12 +788,12 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                                     {loading ? (
                                         <div className="flex items-center gap-2">
                                             <Loader2 className="h-4 w-4 animate-spin" />
-                                            {bug ? "Updating..." : "Creating..."}
+                                            {bug ? "Updating..." : "Creating & Assessing..."}
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-2">
                                             <Bug className="h-4 w-4" />
-                                            {bug ? "Update Bug" : "Create Bug"}
+                                            {bug ? "Update Bug" : "Create & Assess Bug"}
                                         </div>
                                     )}
                                 </Button>
