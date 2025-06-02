@@ -1,5 +1,3 @@
-"use client"
-
 import React, { useState, useMemo } from "react"
 import {
   Search,
@@ -16,7 +14,11 @@ import {
   User,
   Target,
   Layers,
-  BarChart3
+  BarChart3,
+  GitBranch,
+  MapPin,
+  Lightbulb,
+  CheckSquare
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -24,18 +26,111 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useCustomTasks } from "@/hooks/use-custom-tasks"
 import { Status } from "@/types"
-
-// Real Next.js router
 import { useRouter } from "next/navigation"
+
+// Mock tasks data - replace with actual API data
+const mockTasks = [
+  {
+    taskId: "task-1",
+    taskTitle: "Verify Bug Reproduction in IRT v2024.1.0",
+    taskDescription: "Investigate and verify if the reported bug can be reproduced in the latest IRT version",
+    status: "InProgress",
+    createdAt: "2024-01-15T10:30:00Z",
+    currentStepId: "step-2",
+    completedStepsCount: 1,
+    totalStepsCount: 5,
+    coreBug: {
+      bugId: "bug-1",
+      bugTitle: "User authentication fails on mobile devices",
+      jiraKey: "BUG-1234",
+      jiraLink: "https://company.atlassian.net/browse/BUG-1234",
+      severity: 0
+    },
+    productName: "Interactive Response Technology",
+    productVersion: "2024.1.0",
+    productType: "InteractiveResponseTechnology",
+    currentStepAction: "Do the preconditions apply?",
+    currentStepType: "decision"
+  },
+  {
+    taskId: "task-2",
+    taskTitle: "Validate Trial Manager Data Import",
+    taskDescription: "Check if the data import functionality works correctly in Trial Manager",
+    status: "New",
+    createdAt: "2024-01-16T09:15:00Z",
+    currentStepId: "step-1",
+    completedStepsCount: 0,
+    totalStepsCount: 4,
+    coreBug: {
+      bugId: "bug-2",
+      bugTitle: "Data import fails with large CSV files",
+      jiraKey: "BUG-1235",
+      jiraLink: "https://company.atlassian.net/browse/BUG-1235",
+      severity: 1
+    },
+    productName: "Trial Manager",
+    productVersion: "2024.2.0",
+    productType: "TM",
+    currentStepAction: "Check if preconditions apply",
+    currentStepType: "action"
+  },
+  {
+    taskId: "task-3",
+    taskTitle: "Test External Module Integration",
+    taskDescription: "Verify that external modules integrate properly with the main system",
+    status: "Done",
+    createdAt: "2024-01-14T14:20:00Z",
+    completedAt: "2024-01-15T16:45:00Z",
+    currentStepId: null,
+    completedStepsCount: 3,
+    totalStepsCount: 3,
+    coreBug: {
+      bugId: "bug-3",
+      bugTitle: "External module API calls timeout",
+      jiraKey: "BUG-1233",
+      jiraLink: "https://company.atlassian.net/browse/BUG-1233",
+      severity: 2
+    },
+    productName: "External Module",
+    productVersion: "1.8.0",
+    productType: "ExternalModule",
+    currentStepAction: null,
+    currentStepType: null
+  },
+  {
+    taskId: "task-4",
+    taskTitle: "Performance Test on IRT Dashboard",
+    taskDescription: "Test the performance of the new dashboard features under high load",
+    status: "InProgress",
+    createdAt: "2024-01-17T11:00:00Z",
+    currentStepId: "step-3",
+    completedStepsCount: 2,
+    totalStepsCount: 6,
+    coreBug: {
+      bugId: "bug-4",
+      bugTitle: "Dashboard loads slowly with many widgets",
+      jiraKey: "BUG-1236",
+      jiraLink: "https://company.atlassian.net/browse/BUG-1236",
+      severity: 1
+    },
+    productName: "Interactive Response Technology",
+    productVersion: "2024.1.1",
+    productType: "InteractiveResponseTechnology",
+    currentStepAction: "Attempt to reproduce the bug",
+    currentStepType: "action"
+  }
+]
 
 export default function EnhancedTasksPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<Status | "all">("all")
-  const router = useRouter() // Next.js router
+  const router = useRouter()
 
-  const { tasks, loading, error } = useCustomTasks()
+  // In real implementation, use useCustomTasks() hook
+  const tasks = mockTasks
+  const loading = false
+  const error = null
 
   // Filter tasks based on search and status
   const filteredTasks = useMemo(() => {
@@ -92,6 +187,17 @@ export default function EnhancedTasksPage() {
     }
   }
 
+  const getCurrentStepIcon = (stepType: string | null) => {
+    switch (stepType) {
+      case "decision":
+        return <GitBranch className="h-4 w-4 text-cyan-400" />
+      case "action":
+        return <CheckSquare className="h-4 w-4 text-blue-400" />
+      default:
+        return <MapPin className="h-4 w-4 text-gray-400" />
+    }
+  }
+
   const handleStartTask = (taskId: string) => {
     router.push(`/tasks/${taskId}`)
   }
@@ -137,7 +243,7 @@ export default function EnhancedTasksPage() {
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 z-10" />
                   <Input
                       type="search"
-                      placeholder="Search tasks..."
+                      placeholder="Search tasks by title, bug, or JIRA key..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="relative pl-10 bg-white/10 backdrop-blur-md border-white/20 text-white placeholder:text-gray-400 focus:bg-white/15 focus:border-white/30 transition-all duration-300"
@@ -261,6 +367,7 @@ export default function EnhancedTasksPage() {
                             onStartTask={handleStartTask}
                             getStatusIcon={getStatusIcon}
                             getStatusColor={getStatusColor}
+                            getCurrentStepIcon={getCurrentStepIcon}
                             style={{ animationDelay: `${index * 100}ms` }}
                         />
                     ))}
@@ -340,12 +447,14 @@ function TaskCard({
                     onStartTask,
                     getStatusIcon,
                     getStatusColor,
+                    getCurrentStepIcon,
                     style
                   }: {
   task: any
   onStartTask: (taskId: string) => void
   getStatusIcon: (status: Status) => React.ReactNode
   getStatusColor: (status: Status) => string
+  getCurrentStepIcon: (stepType: string | null) => React.ReactNode
   style?: React.CSSProperties
 }) {
   const progressPercentage = task.totalStepsCount > 0
@@ -363,14 +472,21 @@ function TaskCard({
                   <Target className="h-5 w-5 text-emerald-400" />
                   {task.taskTitle}
                 </CardTitle>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={`${getStatusColor(task.status)} text-xs`}>
                     {getStatusIcon(task.status)}
                     <span className="ml-1">{task.status}</span>
                   </Badge>
                   <Badge variant="outline" className="text-xs bg-white/5 border-white/20 text-gray-300">
-                    {task.productType === "InteractiveResponseTechnology" ? "IRT" : task.productType}
+                    {task.productType === "InteractiveResponseTechnology" ? "IRT" :
+                        task.productType === "TM" ? "TM" : "Module"}
                   </Badge>
+                  {task.currentStepType && (
+                      <Badge variant="outline" className="text-xs bg-cyan-500/10 border-cyan-400/30 text-cyan-300">
+                        {getCurrentStepIcon(task.currentStepType)}
+                        <span className="ml-1">{task.currentStepType === "decision" ? "Decision" : "Action"}</span>
+                      </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -384,7 +500,7 @@ function TaskCard({
                 <span className="text-gray-300">Related Bug:</span>
               </div>
               <div className="pl-6">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-1">
                   <Badge variant="outline" className="font-mono bg-blue-500/10 border-blue-400/30 text-blue-300 text-xs">
                     {task.coreBug?.jiraKey}
                   </Badge>
@@ -400,7 +516,7 @@ function TaskCard({
                       </a>
                   )}
                 </div>
-                <p className="text-sm text-gray-400 mt-1 line-clamp-1">{task.coreBug?.bugTitle}</p>
+                <p className="text-sm text-gray-400 line-clamp-1">{task.coreBug?.bugTitle}</p>
               </div>
             </div>
 
@@ -422,16 +538,20 @@ function TaskCard({
             </div>
 
             {/* Current Step */}
-            {task.currentStepId && task.status !== "Done" && (
+            {task.currentStepAction && task.status !== "Done" && (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Layers className="h-4 w-4 text-gray-400" />
                     <span className="text-gray-300">Current Step:</span>
                   </div>
                   <div className="pl-6 p-3 bg-white/5 rounded-lg border border-white/10">
-                    <p className="text-sm text-white">
-                      {task.taskSteps?.find(step => step.taskStepId === task.currentStepId)?.action || "Loading..."}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      {getCurrentStepIcon(task.currentStepType)}
+                      <p className="text-sm text-white font-medium">{task.currentStepAction}</p>
+                    </div>
+                    {task.currentStepType === "decision" && (
+                        <p className="text-xs text-cyan-300">Decision point - choose Yes or No</p>
+                    )}
                   </div>
                 </div>
             )}
