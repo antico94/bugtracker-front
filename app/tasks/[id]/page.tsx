@@ -1,16 +1,14 @@
-﻿import React, { useState, useMemo } from "react"
+﻿"use client"
+
+import React, { useState, useMemo } from "react"
+import { useParams } from "next/navigation"
 import {
     ArrowLeft,
-    ArrowRight,
     CheckCircle2,
     Clock,
     AlertTriangle,
-    FileText,
     MessageSquare,
     Play,
-    Pause,
-    RotateCcw,
-    Save,
     ExternalLink,
     Target,
     GitBranch,
@@ -25,7 +23,6 @@ import {
     ChevronRight,
     ChevronDown,
     Plus,
-    Edit3,
     SkipForward,
     Undo2
 } from "lucide-react"
@@ -42,135 +39,30 @@ import { Status } from "@/types"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 
-// Mock data structure - replace with actual props in your implementation
-const mockTask = {
-    taskId: "123e4567-e89b-12d3-a456-426614174000",
-    taskTitle: "Verify Bug Reproduction in IRT v2024.1.0",
-    taskDescription: "Investigate and verify if the reported bug can be reproduced in the latest IRT version",
-    status: "InProgress",
-    createdAt: "2024-01-15T10:30:00Z",
-    currentStepId: "step-2",
-    completedStepsCount: 1,
-    totalStepsCount: 5,
-    coreBug: {
-        bugId: "bug-1",
-        bugTitle: "User authentication fails on mobile devices",
-        jiraKey: "BUG-1234",
-        jiraLink: "https://company.atlassian.net/browse/BUG-1234",
-        severity: 0
-    },
-    productName: "Interactive Response Technology",
-    productVersion: "2024.1.0",
-    productType: "InteractiveResponseTechnology",
-    taskSteps: [
-        {
-            taskStepId: "step-1",
-            action: "Check if preconditions apply",
-            description: "Verify that the environment meets all preconditions for bug reproduction",
-            order: 1,
-            isDecision: false,
-            isAutoCheck: false,
-            isTerminal: false,
-            requiresNote: false,
-            status: "Done",
-            completedAt: "2024-01-15T11:00:00Z",
-            notes: "Environment checked and all preconditions are met"
-        },
-        {
-            taskStepId: "step-2",
-            action: "Do the preconditions apply?",
-            description: "Based on your verification, do the preconditions apply to this bug?",
-            order: 2,
-            isDecision: true,
-            isAutoCheck: false,
-            isTerminal: false,
-            requiresNote: false,
-            status: "New",
-            nextStepIfYes: "step-3",
-            nextStepIfNo: "step-5"
-        },
-        {
-            taskStepId: "step-3",
-            action: "Attempt to reproduce the bug",
-            description: "Follow the reproduction steps and try to replicate the reported issue",
-            order: 3,
-            isDecision: false,
-            isAutoCheck: false,
-            isTerminal: false,
-            requiresNote: true,
-            status: "New"
-        },
-        {
-            taskStepId: "step-4",
-            action: "Does the bug reproduce?",
-            description: "Were you able to successfully reproduce the bug?",
-            order: 4,
-            isDecision: true,
-            isAutoCheck: false,
-            isTerminal: false,
-            requiresNote: false,
-            status: "New",
-            nextStepIfYes: "step-6",
-            nextStepIfNo: "step-7"
-        },
-        {
-            taskStepId: "step-5",
-            action: "Mark bug as Invalid - Preconditions not met",
-            description: "Close the bug as invalid since preconditions do not apply",
-            order: 5,
-            isDecision: false,
-            isAutoCheck: false,
-            isTerminal: true,
-            requiresNote: true,
-            status: "New"
-        },
-        {
-            taskStepId: "step-6",
-            action: "Confirm bug and create reproduction guide",
-            description: "Document the reproduction steps and confirm the bug is valid",
-            order: 6,
-            isDecision: false,
-            isAutoCheck: false,
-            isTerminal: true,
-            requiresNote: true,
-            status: "New"
-        },
-        {
-            taskStepId: "step-7",
-            action: "Mark bug as Cannot Reproduce",
-            description: "Close the bug as cannot reproduce with detailed notes",
-            order: 7,
-            isDecision: false,
-            isAutoCheck: false,
-            isTerminal: true,
-            requiresNote: true,
-            status: "New"
-        }
-    ],
-    taskNotes: [
-        {
-            taskNoteId: "note-1",
-            content: "Initial analysis looks good, environment is properly set up",
-            createdAt: "2024-01-15T10:45:00Z",
-            createdBy: "John Developer"
-        }
-    ]
-}
-
-export default function EnhancedTaskDetailPage() {
+export default function TaskDetailPage() {
     const router = useRouter()
+    const params = useParams()
+    const taskId = params.id as string
+
     const [noteText, setNoteText] = useState("")
-    const [decisionAnswer, setDecisionAnswer] = useState<"Yes" | "No" | null>(null)
     const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["current-step"]))
 
-    // In real implementation, get this from useCustomTask(taskId)
-    const task = mockTask
-    const loading = false
-    const error = null
+    // Fetch task data from API
+    const { data: task, loading, error, refetch } = useCustomTask(taskId)
+
+    // Get mutation methods
+    const {
+        completeStep,
+        makeDecision,
+        addNote,
+        completeStepLoading,
+        makeDecisionLoading,
+        addNoteLoading
+    } = useCustomTasks()
 
     // Get relevant steps (completed + current + immediate next possibilities)
     const relevantSteps = useMemo(() => {
-        if (!task?.taskSteps) return []
+        if (!task?.taskSteps) return { completed: [], current: null, next: [] }
 
         const completedSteps = task.taskSteps
             .filter(step => step.status === "Done")
@@ -178,7 +70,7 @@ export default function EnhancedTaskDetailPage() {
 
         const currentStep = task.taskSteps.find(step => step.taskStepId === task.currentStepId)
 
-        let nextSteps = []
+        let nextSteps: Array<{ step: any, condition: string }> = []
         if (currentStep?.isDecision) {
             // For decision steps, show both possible next steps
             if (currentStep.nextStepIfYes) {
@@ -215,19 +107,24 @@ export default function EnhancedTaskDetailPage() {
         }
 
         try {
-            // Simulate API call
-            console.log("Completing step:", {
-                taskId: task.taskId,
-                stepId: relevantSteps.current.taskStepId,
-                notes: noteText
+            await completeStep({
+                id: task.taskId,
+                stepData: {
+                    taskId: task.taskId,
+                    taskStepId: relevantSteps.current.taskStepId,
+                    notes: noteText.trim() || undefined
+                }
             })
 
             setNoteText("")
+            await refetch() // Refresh task data
+
             toast({
                 title: "Step Completed",
-                description: "The step has been marked as complete.",
+                description: relevantSteps.current.isTerminal ? "Task completed!" : "The step has been marked as complete.",
             })
         } catch (error) {
+            console.error("Failed to complete step:", error)
             toast({
                 title: "Error",
                 description: "Failed to complete step. Please try again.",
@@ -240,21 +137,25 @@ export default function EnhancedTaskDetailPage() {
         if (!relevantSteps.current || !task) return
 
         try {
-            // Simulate API call
-            console.log("Making decision:", {
-                taskId: task.taskId,
-                stepId: relevantSteps.current.taskStepId,
-                decision,
-                notes: noteText
+            await makeDecision({
+                id: task.taskId,
+                decisionData: {
+                    taskId: task.taskId,
+                    taskStepId: relevantSteps.current.taskStepId,
+                    decisionAnswer: decision,
+                    notes: noteText.trim() || undefined
+                }
             })
 
-            setDecisionAnswer(null)
             setNoteText("")
+            await refetch() // Refresh task data
+
             toast({
                 title: "Decision Recorded",
-                description: `Decision "${decision}" has been recorded.`,
+                description: `Decision "${decision}" has been recorded. Moving to next step.`,
             })
         } catch (error) {
+            console.error("Failed to record decision:", error)
             toast({
                 title: "Error",
                 description: "Failed to record decision. Please try again.",
@@ -263,17 +164,37 @@ export default function EnhancedTaskDetailPage() {
         }
     }
 
-    const handleGoBack = (stepId: string) => {
-        // In real implementation, this would reset all subsequent steps
-        console.log("Going back to step:", stepId)
-        toast({
-            title: "Step Reset",
-            description: "Subsequent steps have been reset.",
-        })
+    const handleAddNote = async () => {
+        if (!task || !noteText.trim()) return
+
+        try {
+            await addNote({
+                id: task.taskId,
+                note: {
+                    taskId: task.taskId,
+                    content: noteText.trim(),
+                    createdBy: "Current User" // In real app, get from auth context
+                }
+            })
+
+            setNoteText("")
+            await refetch() // Refresh task data
+
+            toast({
+                title: "Note Added",
+                description: "Your note has been added to the task."
+            })
+        } catch (error) {
+            console.error("Failed to add note:", error)
+            toast({
+                title: "Error",
+                description: "Failed to add note. Please try again.",
+                variant: "destructive"
+            })
+        }
     }
 
     const handleMoveToNextTask = () => {
-        // In real implementation, find next available task
         router.push('/tasks')
         toast({
             title: "Moving to Next Task",
@@ -329,18 +250,36 @@ export default function EnhancedTaskDetailPage() {
     }
 
     if (error || !task) {
+        let errorMessage = "Task not found"
+
+        if (error) {
+            // Handle specific API errors
+            if (error.includes("400")) {
+                errorMessage = "Invalid task ID. Please check the task URL or select a task from the task list."
+            } else if (error.includes("404")) {
+                errorMessage = "Task not found. It may have been deleted or you don't have access to it."
+            } else {
+                errorMessage = `Error loading task: ${error}`
+            }
+        }
+
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex items-center justify-center">
-                <div className="text-center">
+                <div className="text-center max-w-md">
                     <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-                    <div className="text-red-400 mb-4">Error loading task: {error || "Task not found"}</div>
-                    <Button
-                        variant="outline"
-                        onClick={() => router.push('/tasks')}
-                        className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                    >
-                        Back to Tasks
-                    </Button>
+                    <div className="text-red-400 mb-4">{errorMessage}</div>
+                    <div className="space-y-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => router.push('/tasks')}
+                            className="bg-white/10 border-white/20 text-white hover:bg-white/20 w-full"
+                        >
+                            Back to Tasks
+                        </Button>
+                        {taskId && (
+                            <p className="text-xs text-gray-500">Task ID: {taskId}</p>
+                        )}
+                    </div>
                 </div>
             </div>
         )
@@ -428,27 +367,29 @@ export default function EnhancedTaskDetailPage() {
                                     </div>
 
                                     {/* Related Bug */}
-                                    <div className="space-y-2">
-                                        <Label className="text-sm text-gray-300">Related Bug</Label>
-                                        <div className="p-3 bg-white/5 rounded-lg border border-white/10">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Badge variant="outline" className="font-mono bg-red-500/10 border-red-400/30 text-red-300 text-xs">
-                                                    {task.coreBug.jiraKey}
-                                                </Badge>
-                                                {task.coreBug.jiraLink && (
-                                                    <a
-                                                        href={task.coreBug.jiraLink}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-blue-400 hover:text-blue-300 transition-colors"
-                                                    >
-                                                        <ExternalLink className="h-3 w-3" />
-                                                    </a>
-                                                )}
+                                    {task.coreBug && (
+                                        <div className="space-y-2">
+                                            <Label className="text-sm text-gray-300">Related Bug</Label>
+                                            <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <Badge variant="outline" className="font-mono bg-red-500/10 border-red-400/30 text-red-300 text-xs">
+                                                        {task.coreBug.jiraKey}
+                                                    </Badge>
+                                                    {task.coreBug.jiraLink && (
+                                                        <a
+                                                            href={task.coreBug.jiraLink}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-blue-400 hover:text-blue-300 transition-colors"
+                                                        >
+                                                            <ExternalLink className="h-3 w-3" />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-gray-200">{task.coreBug.bugTitle}</p>
                                             </div>
-                                            <p className="text-sm text-gray-200">{task.coreBug.bugTitle}</p>
                                         </div>
-                                    </div>
+                                    )}
                                 </CardContent>
                             </Card>
 
@@ -478,34 +419,31 @@ export default function EnhancedTaskDetailPage() {
                                     </div>
 
                                     {/* Completed Steps */}
-                                    <div className="space-y-3">
-                                        <Label className="text-sm text-gray-300">Completed Steps</Label>
-                                        {relevantSteps.completed.map((step, index) => (
-                                            <div
-                                                key={step.taskStepId}
-                                                className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-400/20 rounded-lg"
-                                            >
-                                                <CheckCircle2 className="h-4 w-4 text-green-400 flex-shrink-0" />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm text-gray-200 font-medium">{step.action}</p>
-                                                    <p className="text-xs text-gray-400">
-                                                        Completed: {step.completedAt ? new Date(step.completedAt).toLocaleString() : 'Unknown'}
-                                                    </p>
-                                                    {step.notes && (
-                                                        <p className="text-xs text-gray-300 mt-1 italic">"{step.notes}"</p>
-                                                    )}
-                                                </div>
-                                                <Button
-                                                    size="sm"
-                                                    variant="ghost"
-                                                    onClick={() => handleGoBack(step.taskStepId)}
-                                                    className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
+                                    {relevantSteps.completed.length > 0 && (
+                                        <div className="space-y-3">
+                                            <Label className="text-sm text-gray-300">Completed Steps</Label>
+                                            {relevantSteps.completed.map((step) => (
+                                                <div
+                                                    key={step.taskStepId}
+                                                    className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-400/20 rounded-lg"
                                                 >
-                                                    <Undo2 className="h-3 w-3" />
-                                                </Button>
-                                            </div>
-                                        ))}
-                                    </div>
+                                                    <CheckCircle2 className="h-4 w-4 text-green-400 flex-shrink-0" />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm text-gray-200 font-medium">{step.action}</p>
+                                                        <p className="text-xs text-gray-400">
+                                                            Completed: {step.completedAt ? new Date(step.completedAt).toLocaleString() : 'Unknown'}
+                                                        </p>
+                                                        {step.notes && (
+                                                            <p className="text-xs text-gray-300 mt-1 italic">"{step.notes}"</p>
+                                                        )}
+                                                        {step.decisionAnswer && (
+                                                            <p className="text-xs text-cyan-300 mt-1">Decision: {step.decisionAnswer}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     {/* Current Step */}
                                     {relevantSteps.current && (
@@ -611,6 +549,7 @@ export default function EnhancedTaskDetailPage() {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <Button
                                                         onClick={() => handleDecision("Yes")}
+                                                        disabled={makeDecisionLoading}
                                                         className="h-auto p-6 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-200 hover:text-green-100 transition-all duration-200 flex flex-col items-center gap-2"
                                                     >
                                                         <CheckCircle2 className="h-8 w-8" />
@@ -619,6 +558,7 @@ export default function EnhancedTaskDetailPage() {
                                                     </Button>
                                                     <Button
                                                         onClick={() => handleDecision("No")}
+                                                        disabled={makeDecisionLoading}
                                                         className="h-auto p-6 bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-200 hover:text-red-100 transition-all duration-200 flex flex-col items-center gap-2"
                                                     >
                                                         <XCircle className="h-8 w-8" />
@@ -667,11 +607,11 @@ export default function EnhancedTaskDetailPage() {
 
                                                 <Button
                                                     onClick={handleStepComplete}
-                                                    disabled={(relevantSteps.current.requiresNote || relevantSteps.current.isTerminal) && !noteText.trim()}
+                                                    disabled={completeStepLoading || ((relevantSteps.current.requiresNote || relevantSteps.current.isTerminal) && !noteText.trim())}
                                                     className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg h-12"
                                                 >
                                                     <CheckCircle2 className="mr-2 h-5 w-5" />
-                                                    Mark Step as Complete
+                                                    {completeStepLoading ? "Completing..." : "Mark Step as Complete"}
                                                     {relevantSteps.current.isTerminal && (
                                                         <span className="ml-2 text-xs">(Final Step)</span>
                                                     )}
@@ -750,17 +690,13 @@ export default function EnhancedTaskDetailPage() {
                                                 rows={3}
                                             />
                                             <Button
-                                                onClick={() => {
-                                                    console.log("Adding note:", noteText)
-                                                    setNoteText("")
-                                                    toast({ title: "Note Added", description: "Your note has been added to the task." })
-                                                }}
-                                                disabled={!noteText.trim()}
+                                                onClick={handleAddNote}
+                                                disabled={!noteText.trim() || addNoteLoading}
                                                 size="sm"
                                                 className="bg-purple-600 hover:bg-purple-700"
                                             >
                                                 <Plus className="mr-2 h-4 w-4" />
-                                                Add Note
+                                                {addNoteLoading ? "Adding..." : "Add Note"}
                                             </Button>
                                         </div>
 
