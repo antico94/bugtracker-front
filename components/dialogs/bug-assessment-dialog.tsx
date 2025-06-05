@@ -7,14 +7,15 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { X, CheckSquare, Plus, AlertTriangle, ChevronRight, Loader2, Package, Tag, Info } from "lucide-react"
+import { X, CheckSquare, Plus, AlertTriangle, ChevronRight, Loader2, Package, Tag, Info, Calendar } from "lucide-react"
 import { useProductVersions } from "@/hooks/use-core-bugs"
+import { useWeeklyCoreBugs } from "@/hooks/use-weekly-core-bugs"
 import type { BugAssessmentDto, CoreBugResponseDto, ProductType } from "@/types"
 
 interface BugAssessmentDialogProps {
     isOpen: boolean
     onClose: () => void
-    onSubmit: (assessment: BugAssessmentDto) => Promise<void>
+    onSubmit: (assessment: BugAssessmentDto, weeklyReportId?: string) => Promise<void>
     bug?: CoreBugResponseDto
     loading?: boolean
 }
@@ -59,9 +60,13 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
     const [rangeStart, setRangeStart] = useState("")
     const [rangeEnd, setRangeEnd] = useState("")
     const [selectedVersions, setSelectedVersions] = useState<Set<string>>(new Set())
+    const [weeklyReportId, setWeeklyReportId] = useState<string>("none")
 
     // Fetch available versions based on product type
     const { data: availableVersions, loading: versionsLoading } = useProductVersions(assessmentData.assessedProductType)
+
+    // Fetch available weekly reports for assessment
+    const { weeklyCoreBugs: availableWeeklyReports, loading: weeklyReportsLoading } = useWeeklyCoreBugs({ status: "New" })
 
     useEffect(() => {
         if (bug && isOpen) {
@@ -188,7 +193,12 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
         }
 
         try {
-            await onSubmit(assessmentData)
+            const finalWeeklyReportId = weeklyReportId && 
+                weeklyReportId !== "none" && 
+                weeklyReportId !== "loading" && 
+                weeklyReportId !== "no-reports" 
+                ? weeklyReportId : undefined
+            await onSubmit(assessmentData, finalWeeklyReportId)
             onClose()
         } catch (error) {
             console.error("Failed to submit bug assessment:", error)
@@ -505,6 +515,43 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
                                     </div>
                                 </div>
                             )}
+
+                            {/* Weekly Report Section */}
+                            <div className="space-y-4 pt-6 border-t border-white/10">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <Calendar className="h-5 w-5 text-orange-400" />
+                                    <h3 className="text-lg font-semibold text-white">Weekly Report (Optional)</h3>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <Label className="text-white font-medium">Add to Weekly Report</Label>
+                                    <Select
+                                        value={weeklyReportId}
+                                        onValueChange={setWeeklyReportId}
+                                    >
+                                        <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                                            <SelectValue placeholder="Select a weekly report (optional)" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="none">None (don't add to any report)</SelectItem>
+                                            {weeklyReportsLoading ? (
+                                                <SelectItem value="loading" disabled>Loading weekly reports...</SelectItem>
+                                            ) : availableWeeklyReports && availableWeeklyReports.length > 0 ? (
+                                                availableWeeklyReports.map(report => (
+                                                    <SelectItem key={report.weeklyCoreBugsId} value={report.weeklyCoreBugsId}>
+                                                        {report.name} ({new Date(report.weekStartDate).toLocaleDateString()} - {new Date(report.weekEndDate).toLocaleDateString()})
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <SelectItem value="no-reports" disabled>No active weekly reports available</SelectItem>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="text-xs text-gray-400">
+                                        Optionally add this assessed bug to an existing weekly core bugs report.
+                                    </p>
+                                </div>
+                            </div>
                         </CardContent>
                     </ScrollArea>
 

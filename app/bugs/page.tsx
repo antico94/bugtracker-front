@@ -259,14 +259,39 @@ export default function BugsPage() {
     }
   }
 
-  const handleAssessBug = async (assessment: BugAssessmentDto) => {
+  const handleAssessBug = async (assessment: BugAssessmentDto, weeklyReportId?: string) => {
     if (!assessingBug) return
     try {
       await assess({ id: assessment.bugId, assessment })
-      toast({
-        title: "Bug Assessed",
-        description: "Bug assessment has been completed successfully",
-      })
+      
+      // If a weekly report was specified, add the bug to it
+      if (weeklyReportId) {
+        try {
+          await addBugToWeeklyReport({
+            id: weeklyReportId,
+            bugsData: {
+              weeklyCoreBugsId: weeklyReportId,
+              bugIds: [assessment.bugId]
+            }
+          })
+          toast({
+            title: "Bug Assessed & Added to Weekly Report",
+            description: "Bug has been assessed and added to the selected weekly report",
+          })
+        } catch (weeklyError) {
+          console.error("Failed to add bug to weekly report:", weeklyError)
+          toast({
+            title: "Bug Assessed",
+            description: "Bug assessed successfully, but failed to add to weekly report. You can add it manually.",
+          })
+        }
+      } else {
+        toast({
+          title: "Bug Assessed",
+          description: "Bug assessment has been completed successfully",
+        })
+      }
+      
       setAssessingBug(null)
       refetch()
     } catch (err) {

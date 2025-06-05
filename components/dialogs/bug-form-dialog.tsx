@@ -93,7 +93,7 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
         bugDescription: "",
         severity: 2 as BugSeverity,
         affectedVersions: [] as string[],
-        weeklyReportId: "" as string,
+        weeklyReportId: "none" as string,
     })
 
     const [errors, setErrors] = useState<Record<string, string>>({})
@@ -122,7 +122,7 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                 bugDescription: bug.bugDescription || "",
                 severity: bug.severity,
                 affectedVersions: bug.affectedVersions || [],
-                weeklyReportId: "", // Weekly reports not available for editing existing bugs
+                weeklyReportId: "none", // Weekly reports not available for editing existing bugs
             })
             setSelectedVersions(new Set(bug.affectedVersions || []))
 
@@ -139,7 +139,7 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                 bugDescription: "",
                 severity: 2 as BugSeverity,
                 affectedVersions: [],
-                weeklyReportId: "",
+                weeklyReportId: "none",
             })
             setSelectedVersions(new Set())
         }
@@ -301,8 +301,12 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
             versions: Array.from(selectedVersions)
         } : undefined
 
-        // Weekly report ID for new bugs only
-        const weeklyReportId = !bug && formData.weeklyReportId ? formData.weeklyReportId : undefined
+        // Weekly report ID for new bugs only (exclude "none" and other placeholder values)
+        const weeklyReportId = !bug && formData.weeklyReportId && 
+            formData.weeklyReportId !== "none" && 
+            formData.weeklyReportId !== "loading" && 
+            formData.weeklyReportId !== "no-reports" 
+            ? formData.weeklyReportId : undefined
 
         try {
             await onSubmit(submitData, assessmentData, weeklyReportId)
@@ -786,9 +790,9 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                                                 <SelectValue placeholder="Select a weekly report (optional)" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="">None (don't add to any report)</SelectItem>
+                                                <SelectItem value="none">None (don't add to any report)</SelectItem>
                                                 {weeklyReportsLoading ? (
-                                                    <SelectItem value="" disabled>Loading weekly reports...</SelectItem>
+                                                    <SelectItem value="loading" disabled>Loading weekly reports...</SelectItem>
                                                 ) : availableWeeklyReports && availableWeeklyReports.length > 0 ? (
                                                     availableWeeklyReports.map(report => (
                                                         <SelectItem key={report.weeklyCoreBugsId} value={report.weeklyCoreBugsId}>
@@ -796,7 +800,7 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                                                         </SelectItem>
                                                     ))
                                                 ) : (
-                                                    <SelectItem value="" disabled>No active weekly reports available</SelectItem>
+                                                    <SelectItem value="no-reports" disabled>No active weekly reports available</SelectItem>
                                                 )}
                                             </SelectContent>
                                         </Select>

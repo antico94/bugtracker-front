@@ -199,17 +199,17 @@ export default function BugSelectionDialog({
                 <div>
                   <Label className="text-xs text-gray-300 mb-1 block">Severity</Label>
                   <Select
-                    value={filters.severity?.toString() || ""}
+                    value={filters.severity?.toString() || "any"}
                     onValueChange={(value) => setFilters(prev => ({ 
                       ...prev, 
-                      severity: value ? parseInt(value) as BugSeverity : undefined 
+                      severity: value && value !== "any" ? parseInt(value) as BugSeverity : undefined 
                     }))}
                   >
                     <SelectTrigger className="bg-white/10 border-white/20 text-white text-xs">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any Severity</SelectItem>
+                      <SelectItem value="any">Any Severity</SelectItem>
                       <SelectItem value="0">Critical</SelectItem>
                       <SelectItem value="1">Major</SelectItem>
                       <SelectItem value="2">Moderate</SelectItem>
@@ -222,17 +222,17 @@ export default function BugSelectionDialog({
                 <div>
                   <Label className="text-xs text-gray-300 mb-1 block">Status</Label>
                   <Select
-                    value={filters.status || ""}
+                    value={filters.status || "any"}
                     onValueChange={(value) => setFilters(prev => ({ 
                       ...prev, 
-                      status: value || undefined 
+                      status: value && value !== "any" ? value as Status : undefined 
                     }))}
                   >
                     <SelectTrigger className="bg-white/10 border-white/20 text-white text-xs">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any Status</SelectItem>
+                      <SelectItem value="any">Any Status</SelectItem>
                       <SelectItem value="New">New</SelectItem>
                       <SelectItem value="InProgress">In Progress</SelectItem>
                       <SelectItem value="Done">Done</SelectItem>
@@ -243,17 +243,17 @@ export default function BugSelectionDialog({
                 <div>
                   <Label className="text-xs text-gray-300 mb-1 block">Assessment</Label>
                   <Select
-                    value={filters.isAssessed?.toString() || ""}
+                    value={filters.isAssessed?.toString() || "any"}
                     onValueChange={(value) => setFilters(prev => ({ 
                       ...prev, 
-                      isAssessed: value ? value === "true" : undefined 
+                      isAssessed: value && value !== "any" ? value === "true" : undefined 
                     }))}
                   >
                     <SelectTrigger className="bg-white/10 border-white/20 text-white text-xs">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any</SelectItem>
+                      <SelectItem value="any">Any</SelectItem>
                       <SelectItem value="true">Assessed</SelectItem>
                       <SelectItem value="false">Unassessed</SelectItem>
                     </SelectContent>
@@ -263,17 +263,17 @@ export default function BugSelectionDialog({
                 <div>
                   <Label className="text-xs text-gray-300 mb-1 block">Product</Label>
                   <Select
-                    value={filters.productType || ""}
+                    value={filters.productType || "any"}
                     onValueChange={(value) => setFilters(prev => ({ 
                       ...prev, 
-                      productType: value || undefined 
+                      productType: value && value !== "any" ? value as ProductType : undefined 
                     }))}
                   >
                     <SelectTrigger className="bg-white/10 border-white/20 text-white text-xs">
                       <SelectValue placeholder="Any" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Any Product</SelectItem>
+                      <SelectItem value="any">Any Product</SelectItem>
                       <SelectItem value="InteractiveResponseTechnology">IRT</SelectItem>
                       <SelectItem value="TM">Trial Manager</SelectItem>
                       <SelectItem value="ExternalModule">External Module</SelectItem>
