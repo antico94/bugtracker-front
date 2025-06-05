@@ -28,24 +28,24 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { useWeeklyCoreBugs } from "@/hooks/use-weekly-core-bugs"
-import { WeeklyCoreBugsStatus, WeeklyCoreBugsResponseDto } from "@/types"
+import { Status, WeeklyCoreBugsResponseDto, CreateWeeklyCoreBugsDto } from "@/types"
 import { toast } from "@/hooks/use-toast"
 
 export default function WeeklyCoreBugsPage() {
     const router = useRouter()
     const [searchQuery, setSearchQuery] = useState("")
-    const [statusFilter, setStatusFilter] = useState<WeeklyCoreBugsStatus | "all">("all")
+    const [statusFilter, setStatusFilter] = useState<Status | "all">("all")
 
     const {
-        data: weeklyReports,
+        weeklyCoreBugs: weeklyReports,
         loading,
         error,
         refetch,
-        createWeeklyReport,
-        deleteWeeklyReport,
+        create: createWeeklyReport,
+        delete: deleteWeeklyReport,
         updateStatus,
-        createWeeklyReportLoading,
-        deleteWeeklyReportLoading,
+        createLoading: createWeeklyReportLoading,
+        deleteLoading: deleteWeeklyReportLoading,
         updateStatusLoading
     } = useWeeklyCoreBugs()
 
@@ -73,11 +73,20 @@ export default function WeeklyCoreBugsPage() {
 
     const handleCreateWeeklyReport = async () => {
         try {
-            const newReport = await createWeeklyReport({
-                name: `Weekly Report - ${new Date().toLocaleDateString()}`,
-                weekStartDate: new Date().toISOString(),
-                weekEndDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-            })
+            const today = new Date()
+            const startOfWeek = new Date(today)
+            startOfWeek.setDate(today.getDate() - today.getDay()) // Start of week (Sunday)
+            const endOfWeek = new Date(startOfWeek)
+            endOfWeek.setDate(startOfWeek.getDate() + 6) // End of week (Saturday)
+
+            const weekData: CreateWeeklyCoreBugsDto = {
+                name: `Week of ${startOfWeek.toLocaleDateString()}`,
+                weekStartDate: startOfWeek.toISOString(),
+                weekEndDate: endOfWeek.toISOString(),
+                bugIds: []
+            }
+
+            const newReport = await createWeeklyReport(weekData)
             
             toast({
                 title: "Weekly Report Created",
@@ -112,9 +121,9 @@ export default function WeeklyCoreBugsPage() {
         }
     }
 
-    const handleStatusUpdate = async (reportId: string, newStatus: WeeklyCoreBugsStatus) => {
+    const handleStatusUpdate = async (reportId: string, newStatus: Status) => {
         try {
-            await updateStatus(reportId, newStatus)
+            await updateStatus({ id: reportId, status: newStatus })
             toast({
                 title: "Status Updated",
                 description: `Report status has been updated to ${newStatus}.`
@@ -129,31 +138,27 @@ export default function WeeklyCoreBugsPage() {
         }
     }
 
-    const getStatusIcon = (status: WeeklyCoreBugsStatus) => {
+    const getStatusIcon = (status: Status) => {
         switch (status) {
-            case "Draft":
+            case "New":
                 return <Edit className="h-4 w-4" />
             case "InProgress":
                 return <Clock className="h-4 w-4" />
-            case "Completed":
+            case "Done":
                 return <CheckCircle2 className="h-4 w-4" />
-            case "Archived":
-                return <FileText className="h-4 w-4" />
             default:
                 return <AlertTriangle className="h-4 w-4" />
         }
     }
 
-    const getStatusColor = (status: WeeklyCoreBugsStatus) => {
+    const getStatusColor = (status: Status) => {
         switch (status) {
-            case "Draft":
-                return "bg-gray-500/20 text-gray-300 border-gray-400/30"
+            case "New":
+                return "bg-blue-500/20 text-blue-300 border-blue-400/30"
             case "InProgress":
                 return "bg-yellow-500/20 text-yellow-300 border-yellow-400/30"
-            case "Completed":
+            case "Done":
                 return "bg-green-500/20 text-green-300 border-green-400/30"
-            case "Archived":
-                return "bg-blue-500/20 text-blue-300 border-blue-400/30"
             default:
                 return "bg-gray-500/20 text-gray-300 border-gray-400/30"
         }
@@ -212,32 +217,28 @@ export default function WeeklyCoreBugsPage() {
                     <GlassStatsCard
                         title="Total Reports"
                         value={overallStats.totalReports.toString()}
-                        change={overallStats.totalReports > 0 ? "+100%" : "0%"}
-                        trend="up"
+                        subtitle={`${overallStats.totalReports} active reports`}
                         icon={FileText}
                         glowColor="blue"
                     />
                     <GlassStatsCard
                         title="Total Bugs"
                         value={overallStats.totalBugs.toString()}
-                        change={overallStats.totalBugs > 0 ? "+100%" : "0%"}
-                        trend="up"
+                        subtitle={`Across all reports`}
                         icon={AlertTriangle}
                         glowColor="red"
                     />
                     <GlassStatsCard
                         title="Total Tasks"
                         value={overallStats.totalTasks.toString()}
-                        change={overallStats.totalTasks > 0 ? "+100%" : "0%"}
-                        trend="up"
+                        subtitle={`${overallStats.completedTasks} completed`}
                         icon={BarChart3}
                         glowColor="yellow"
                     />
                     <GlassStatsCard
                         title="Avg Completion"
                         value={`${overallStats.averageCompletion.toFixed(1)}%`}
-                        change={overallStats.averageCompletion > 0 ? "+100%" : "0%"}
-                        trend="up"
+                        subtitle="Overall progress"
                         icon={TrendingUp}
                         glowColor="green"
                     />
@@ -255,14 +256,13 @@ export default function WeeklyCoreBugsPage() {
                     <div className="flex gap-2">
                         <select
                             value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value as WeeklyCoreBugsStatus | "all")}
+                            onChange={(e) => setStatusFilter(e.target.value as Status | "all")}
                             className="bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-lg px-3 py-2 text-sm"
                         >
                             <option value="all">All Statuses</option>
-                            <option value="Draft">Draft</option>
+                            <option value="New">New</option>
                             <option value="InProgress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="Archived">Archived</option>
+                            <option value="Done">Done</option>
                         </select>
                     </div>
                 </div>

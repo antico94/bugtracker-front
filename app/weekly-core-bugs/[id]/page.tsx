@@ -36,9 +36,11 @@ import { Separator } from "@/components/ui/separator"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { BugSeverityBadge } from "@/components/bug-severity-badge"
+import { WeeklyStatsOverview } from "@/components/weekly-stats-overview"
+import BugSelectionDialog from "@/components/dialogs/bug-selection-dialog"
 import { useWeeklyCoreBug } from "@/hooks/use-weekly-core-bugs"
 import { useCoreBugs } from "@/hooks/use-core-bugs"
-import { WeeklyCoreBugsStatus, BugSeverity, Status } from "@/types"
+import { BugSeverity, Status } from "@/types"
 import { toast } from "@/hooks/use-toast"
 
 export default function WeeklyCoreBugDetailPage() {
@@ -54,44 +56,49 @@ export default function WeeklyCoreBugDetailPage() {
         data: weeklyReport,
         loading,
         error,
-        refetch,
+        refetch
+    } = useWeeklyCoreBug(weeklyReportId)
+
+    const {
+        bugs: allCoreBugs,
+        loading: coreBugsLoading
+    } = useCoreBugs()
+
+    const {
         updateStatus,
         addBugs,
         removeBugs,
         updateStatusLoading,
         addBugsLoading,
         removeBugsLoading
-    } = useWeeklyCoreBug(weeklyReportId)
-
-    const {
-        data: allCoreBugs,
-        loading: coreBugsLoading
-    } = useCoreBugs()
+    } = useWeeklyCoreBugs()
 
     // Filter bugs in the weekly report
     const filteredBugs = useMemo(() => {
-        if (!weeklyReport?.bugEntries) return []
+        if (!weeklyReport?.weeklyCoreBugEntries) return []
         
-        return weeklyReport.bugEntries.filter(entry => {
+        return weeklyReport.weeklyCoreBugEntries.filter(entry => {
+            const bug = entry.coreBug
+            if (!bug) return false
             const matchesSearch = !searchQuery || 
-                entry.coreBug.bugTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                entry.coreBug.jiraKey.toLowerCase().includes(searchQuery.toLowerCase())
-            const matchesSeverity = severityFilter === "all" || entry.coreBug.severity === severityFilter
+                bug.bugTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                bug.jiraKey.toLowerCase().includes(searchQuery.toLowerCase())
+            const matchesSeverity = severityFilter === "all" || bug.severity === severityFilter
             return matchesSearch && matchesSeverity
         })
-    }, [weeklyReport?.bugEntries, searchQuery, severityFilter])
+    }, [weeklyReport?.weeklyCoreBugEntries, searchQuery, severityFilter])
 
     // Get available bugs to add (not already in this weekly report)
     const availableBugs = useMemo(() => {
         if (!allCoreBugs || !weeklyReport) return []
         
-        const existingBugIds = new Set(weeklyReport.bugEntries.map(entry => entry.coreBug.bugId))
+        const existingBugIds = new Set(weeklyReport.weeklyCoreBugEntries.map(entry => entry.bugId))
         return allCoreBugs.filter(bug => !existingBugIds.has(bug.bugId) && bug.isAssessed)
     }, [allCoreBugs, weeklyReport])
 
-    const handleStatusUpdate = async (newStatus: WeeklyCoreBugsStatus) => {
+    const handleStatusUpdate = async (newStatus: Status) => {
         try {
-            await updateStatus(weeklyReportId, newStatus)
+            await updateStatus({ id: weeklyReportId, status: newStatus })
             toast({
                 title: "Status Updated",
                 description: `Weekly report status has been updated to ${newStatus}.`
@@ -108,12 +115,19 @@ export default function WeeklyCoreBugDetailPage() {
 
     const handleAddBugs = async (bugIds: string[]) => {
         try {
-            await addBugs(weeklyReportId, bugIds)
+            await addBugs({
+                id: weeklyReportId,
+                bugsData: {
+                    weeklyCoreBugsId: weeklyReportId,
+                    bugIds: bugIds
+                }
+            })
             setShowAddBugsDialog(false)
             toast({
                 title: "Bugs Added",
                 description: `${bugIds.length} bug(s) have been added to the weekly report.`
             })
+            refetch()
         } catch (error) {
             console.error("Failed to add bugs:", error)
             toast({
@@ -126,11 +140,18 @@ export default function WeeklyCoreBugDetailPage() {
 
     const handleRemoveBug = async (bugId: string) => {
         try {
-            await removeBugs(weeklyReportId, [bugId])
+            await removeBugs({
+                id: weeklyReportId,
+                bugsData: {
+                    weeklyCoreBugsId: weeklyReportId,
+                    bugIds: [bugId]
+                }
+            })
             toast({
                 title: "Bug Removed",
                 description: "Bug has been removed from the weekly report."
             })
+            refetch()
         } catch (error) {
             console.error("Failed to remove bug:", error)
             toast({
@@ -141,31 +162,27 @@ export default function WeeklyCoreBugDetailPage() {
         }
     }
 
-    const getStatusIcon = (status: WeeklyCoreBugsStatus) => {
+    const getStatusIcon = (status: Status) => {
         switch (status) {
-            case "Draft":
+            case "New":
                 return <Edit className="h-4 w-4" />
             case "InProgress":
                 return <Clock className="h-4 w-4" />
-            case "Completed":
+            case "Done":
                 return <CheckCircle2 className="h-4 w-4" />
-            case "Archived":
-                return <Archive className="h-4 w-4" />
             default:
                 return <AlertTriangle className="h-4 w-4" />
         }
     }
 
-    const getStatusColor = (status: WeeklyCoreBugsStatus) => {
+    const getStatusColor = (status: Status) => {
         switch (status) {
-            case "Draft":
-                return "bg-gray-500/20 text-gray-300 border-gray-400/30"
+            case "New":
+                return "bg-blue-500/20 text-blue-300 border-blue-400/30"
             case "InProgress":
                 return "bg-yellow-500/20 text-yellow-300 border-yellow-400/30"
-            case "Completed":
+            case "Done":
                 return "bg-green-500/20 text-green-300 border-green-400/30"
-            case "Archived":
-                return "bg-blue-500/20 text-blue-300 border-blue-400/30"
             default:
                 return "bg-gray-500/20 text-gray-300 border-gray-400/30"
         }
@@ -260,40 +277,10 @@ export default function WeeklyCoreBugDetailPage() {
 
             <div className="container py-6">
                 {/* Statistics Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <GlassStatsCard
-                        title="Total Bugs"
-                        value={weeklyReport.totalBugsCount.toString()}
-                        change={weeklyReport.totalBugsCount > 0 ? "+100%" : "0%"}
-                        trend="up"
-                        icon={Bug}
-                        glowColor="red"
-                    />
-                    <GlassStatsCard
-                        title="Assessed Bugs"
-                        value={weeklyReport.assessedBugsCount.toString()}
-                        change={weeklyReport.assessedBugsCount > 0 ? "+100%" : "0%"}
-                        trend="up"
-                        icon={CheckCircle2}
-                        glowColor="green"
-                    />
-                    <GlassStatsCard
-                        title="Total Tasks"
-                        value={weeklyReport.totalTasksCount.toString()}
-                        change={weeklyReport.totalTasksCount > 0 ? "+100%" : "0%"}
-                        trend="up"
-                        icon={Target}
-                        glowColor="blue"
-                    />
-                    <GlassStatsCard
-                        title="Completion"
-                        value={`${weeklyReport.completionPercentage.toFixed(1)}%`}
-                        change={weeklyReport.completionPercentage > 0 ? "+100%" : "0%"}
-                        trend="up"
-                        icon={TrendingUp}
-                        glowColor="purple"
-                    />
-                </div>
+                <WeeklyStatsOverview
+                    weeklyData={weeklyReport}
+                    className="mb-8"
+                />
 
                 {/* Progress Overview */}
                 <GlassCard className="p-6 mb-8" glowColor="purple">
@@ -446,64 +433,15 @@ export default function WeeklyCoreBugDetailPage() {
                 )}
             </div>
 
-            {/* Add Bugs Dialog - Simplified for now */}
-            {showAddBugsDialog && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <GlassCard className="p-6 max-w-2xl w-full max-h-[80vh] overflow-auto" glowColor="green">
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-lg font-semibold text-white">Add Bugs to Weekly Report</h3>
-                                <GlassButton
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setShowAddBugsDialog(false)}
-                                    glowColor="red"
-                                >
-                                    ×
-                                </GlassButton>
-                            </div>
-                            <p className="text-gray-400">Select bugs to add to this weekly report:</p>
-                            
-                            {availableBugs.length === 0 ? (
-                                <GlassEmptyState
-                                    icon={Bug}
-                                    title="No Available Bugs"
-                                    description="All assessed bugs are already in weekly reports."
-                                />
-                            ) : (
-                                <div className="space-y-2 max-h-96 overflow-auto">
-                                    {availableBugs.map((bug) => (
-                                        <div
-                                            key={bug.bugId}
-                                            className="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/10"
-                                        >
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <Badge variant="outline" className="font-mono text-xs">
-                                                        {bug.jiraKey}
-                                                    </Badge>
-                                                    <BugSeverityBadge severity={bug.severity} />
-                                                </div>
-                                                <div className="text-sm font-medium text-white truncate">
-                                                    {bug.bugTitle}
-                                                </div>
-                                            </div>
-                                            <GlassButton
-                                                size="sm"
-                                                onClick={() => handleAddBugs([bug.bugId])}
-                                                loading={addBugsLoading}
-                                                glowColor="green"
-                                            >
-                                                Add
-                                            </GlassButton>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </GlassCard>
-                </div>
-            )}
+            {/* Add Bugs Dialog */}
+            <BugSelectionDialog
+                isOpen={showAddBugsDialog}
+                onClose={() => setShowAddBugsDialog(false)}
+                onConfirm={handleAddBugs}
+                mode="add"
+                excludeBugIds={weeklyReport?.weeklyCoreBugEntries.map(entry => entry.bugId) || []}
+                loading={addBugsLoading}
+            />
         </div>
     )
 }
