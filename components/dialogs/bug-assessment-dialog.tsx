@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { GlassButton } from "@/components/glass/glass-button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -561,33 +562,27 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
                                     <span>Previously assessed by: {bug.assessedBy || "Unknown"}</span>
                                 )}
                             </div>
-                            <div className="flex items-center gap-3">
-                                <Button
+                            <div className="flex items-center gap-4">
+                                <GlassButton
                                     type="button"
-                                    variant="outline"
+                                    variant="dialog-secondary"
                                     onClick={onClose}
-                                    className="bg-white/5 border-white/20 text-gray-300 hover:bg-white/10"
+                                    className="px-6"
                                 >
                                     Cancel
-                                </Button>
-                                <Button
+                                </GlassButton>
+                                <GlassButton
                                     type="button"
+                                    variant="dialog-primary"
                                     onClick={handleSubmit}
                                     disabled={loading || selectedVersions.size === 0}
-                                    className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg disabled:opacity-50"
+                                    loading={loading}
+                                    glowColor="emerald"
+                                    className="px-6"
                                 >
-                                    {loading ? (
-                                        <div className="flex items-center gap-2">
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            Assessing...
-                                        </div>
-                                    ) : (
-                                        <div className="flex items-center gap-2">
-                                            <CheckSquare className="h-4 w-4" />
-                                            {bug.isAssessed ? "Update Assessment" : "Complete Assessment"}
-                                        </div>
-                                    )}
-                                </Button>
+                                    <CheckSquare className="h-4 w-4 mr-2" />
+                                    {bug.isAssessed ? "Update Assessment" : "Complete Assessment"}
+                                </GlassButton>
                             </div>
                         </div>
                     </div>

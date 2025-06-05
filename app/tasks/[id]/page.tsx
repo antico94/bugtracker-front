@@ -126,11 +126,14 @@ export default function TaskDetailPage() {
     const handleStepComplete = async () => {
         if (!relevantSteps.current || !task) return
 
-        // Check if terminal step requires note
-        if (relevantSteps.current.isTerminal && !stepNoteText.trim()) {
+        // Check if note is required for this specific step
+        const noteRequired = relevantSteps.current.requiresNote || 
+            (relevantSteps.current.isTerminal && isNoDecisionTerminal(relevantSteps.current))
+            
+        if (noteRequired && !stepNoteText.trim()) {
             toast({
                 title: "Note Required",
-                description: "Terminal steps require a note before completion.",
+                description: "This step requires a note before completion.",
                 variant: "destructive"
             })
             return
@@ -180,6 +183,16 @@ export default function TaskDetailPage() {
 
     const handleDecision = async (decision: "Yes" | "No") => {
         if (!relevantSteps.current || !task) return
+
+        // Check if note is required for "No" decisions that lead to terminal steps
+        if (decision === "No" && willLeadToTerminal(relevantSteps.current, decision) && !stepNoteText.trim()) {
+            toast({
+                title: "Note Required",
+                description: "Please explain why this step cannot be completed.",
+                variant: "destructive"
+            })
+            return
+        }
 
         try {
             await makeDecision({
@@ -314,6 +327,32 @@ export default function TaskDetailPage() {
             default:
                 return "bg-gray-500/20 text-gray-300 border-gray-400/30"
         }
+    }
+
+    // Helper function to determine if a terminal step was reached via "No" decision
+    const isNoDecisionTerminal = (step: any) => {
+        // Logic to determine if this terminal step requires a note
+        // For now, we'll make terminal steps NOT require notes by default
+        // Only specific workflows that end with "No" should require notes
+        return false // This can be enhanced based on step description or workflow type
+    }
+
+    // Helper function to check if a "No" decision will lead to a terminal step
+    const willLeadToTerminal = (currentStep: any, decision: "Yes" | "No") => {
+        if (!currentStep.isDecision) return false
+        
+        const nextStepId = decision === "Yes" ? currentStep.nextStepIfYes : currentStep.nextStepIfNo
+        if (!nextStepId || !task?.taskSteps) return false
+        
+        const nextStep = task.taskSteps.find(s => s.taskStepId === nextStepId)
+        return nextStep?.isTerminal || false
+    }
+
+    // Helper function to determine if notes should be required for current step
+    const shouldRequireNotes = (step: any, decision?: "Yes" | "No") => {
+        if (step.requiresNote) return true
+        if (decision === "No" && willLeadToTerminal(step, decision)) return true
+        return false
     }
 
     if (loading) {
@@ -676,7 +715,10 @@ export default function TaskDetailPage() {
                                                         {/* Notes for Decision */}
                                                         <div className="space-y-2">
                                                             <Label className="text-sm text-gray-300">
-                                                                Notes {relevantSteps.current.requiresNote && <span className="text-red-400">*</span>}
+                                                                Notes
+                                                                <span className="text-yellow-400 ml-2 text-xs">
+                                                                    (Required only if answering "No")
+                                                                </span>
                                                             </Label>
                                                             <Textarea
                                                                 value={stepNoteText}
@@ -699,9 +741,9 @@ export default function TaskDetailPage() {
                                                 {/* Notes for Regular Step */}
                                                 <div className="space-y-2">
                                                     <Label className="text-sm text-gray-300">
-                                                        Notes {(relevantSteps.current.requiresNote || relevantSteps.current.isTerminal) && <span className="text-red-400">*</span>}
-                                                        {relevantSteps.current.isTerminal && (
-                                                            <span className="text-orange-400 ml-2">(Required for terminal step)</span>
+                                                        Notes {relevantSteps.current.requiresNote && <span className="text-red-400">*</span>}
+                                                        {relevantSteps.current.isTerminal && !relevantSteps.current.requiresNote && (
+                                                            <span className="text-gray-400 ml-2 text-xs">(Optional)</span>
                                                         )}
                                                     </Label>
                                                     <Textarea
@@ -715,7 +757,7 @@ export default function TaskDetailPage() {
 
                                                 <GlassButton
                                                     onClick={handleStepComplete}
-                                                    disabled={completeStepLoading || ((relevantSteps.current.requiresNote || relevantSteps.current.isTerminal) && !stepNoteText.trim())}
+                                                    disabled={completeStepLoading || (relevantSteps.current.requiresNote && !stepNoteText.trim())}
                                                     loading={completeStepLoading}
                                                     glowColor="emerald"
                                                     className="w-full h-12"

@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button"
 
 interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     children: ReactNode
-    variant?: 'primary' | 'outline' | 'ghost'
+    variant?: 'primary' | 'outline' | 'ghost' | 'dialog-primary' | 'dialog-secondary'
     size?: 'sm' | 'default' | 'lg'
     glowColor?: 'blue' | 'purple' | 'emerald' | 'red' | 'yellow' | 'green' | 'orange' | 'cyan' | 'pink'
     loading?: boolean
     className?: string
+    elevation?: 'none' | 'sm' | 'md' | 'lg' | 'xl'
 }
 
 const glowColorClasses = {
@@ -88,11 +89,25 @@ export function GlassButton({
                             }: GlassButtonProps) {
     const colorClasses = glowColorClasses[glowColor]
 
+    // Get elevation shadow classes
+    const getElevationClasses = (elev: string) => {
+        switch (elev) {
+            case 'none': return ''
+            case 'sm': return 'shadow-sm'
+            case 'md': return 'shadow-md'
+            case 'lg': return 'shadow-lg shadow-black/25'
+            case 'xl': return 'shadow-xl shadow-black/30'
+            default: return 'shadow-lg shadow-black/25'
+        }
+    }
+
+    const elevationClass = getElevationClasses(elevation || 'lg')
+
     if (variant === 'primary') {
         return (
             <div className="relative group">
-                {/* Subtle glow effect behind the button */}
-                <div className={`absolute -inset-0.5 bg-gradient-to-r ${colorClasses.glow} rounded-lg blur opacity-30 group-hover:opacity-50 transition duration-300 pointer-events-none`}></div>
+                {/* Enhanced glow effect with proper shadow separation */}
+                <div className={`absolute -inset-1 bg-gradient-to-r ${colorClasses.glow} rounded-lg blur-sm opacity-30 group-hover:opacity-50 transition duration-300 pointer-events-none`}></div>
 
                 <Button
                     className={`
@@ -100,13 +115,13 @@ export function GlassButton({
             ${colorClasses.bg} backdrop-blur-md
             border ${colorClasses.border}
             ${colorClasses.text} font-medium
-            shadow-lg ${colorClasses.hoverGlow}
+            ${elevationClass}
             hover:${colorClasses.bg.replace('/20', '/30')}
             hover:border-white/40
-            hover:shadow-xl
-            hover:brightness-110
+            hover:shadow-2xl hover:shadow-black/40
+            hover:brightness-110 hover:-translate-y-0.5
             transition-all duration-200 ease-out
-            active:brightness-95
+            active:brightness-95 active:translate-y-0
             transform-gpu
             ${className}
           `}
@@ -119,10 +134,99 @@ export function GlassButton({
                     disabled={disabled || loading}
                     {...props}
                 >
-                    {/* Inner highlight for glass effect */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
+                    {/* Enhanced inner highlight for better glass effect */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-white/5 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
 
-                    <span className="relative z-10 flex items-center text-white font-medium">
+                    <span className="relative z-10 flex items-center justify-center text-white font-medium">
+            {loading && <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
+                        {children}
+          </span>
+                </Button>
+            </div>
+        )
+    }
+
+    if (variant === 'dialog-primary') {
+        return (
+            <div className="relative group">
+                {/* Dialog-optimized glow effect */}
+                <div className={`absolute -inset-0.5 bg-gradient-to-r ${colorClasses.glow} rounded-lg blur opacity-40 group-hover:opacity-60 transition duration-300 pointer-events-none`}></div>
+
+                <Button
+                    className={`
+            relative overflow-hidden min-w-[120px]
+            ${colorClasses.bg} backdrop-blur-md
+            border ${colorClasses.border}
+            ${colorClasses.text} font-semibold
+            shadow-lg shadow-black/25
+            hover:${colorClasses.bg.replace('/20', '/30')}
+            hover:border-white/40
+            hover:shadow-xl hover:shadow-black/30
+            hover:brightness-110 hover:-translate-y-0.5
+            transition-all duration-200 ease-out
+            active:brightness-95 active:translate-y-0
+            transform-gpu
+            ${className}
+          `}
+                    style={{
+                        textRendering: 'optimizeLegibility',
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale'
+                    }}
+                    size={size}
+                    disabled={disabled || loading}
+                    {...props}
+                >
+                    {/* Enhanced glass effect for dialogs */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/5 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none"></div>
+
+                    <span className="relative z-10 flex items-center justify-center text-white font-semibold">
+            {loading && <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
+                        {children}
+          </span>
+                </Button>
+            </div>
+        )
+    }
+
+    if (variant === 'dialog-secondary') {
+        return (
+            <div className="relative group">
+                {/* Subtle glow for secondary dialog buttons */}
+                <div className={`absolute -inset-0.5 bg-gradient-to-r from-white/10 to-white/5 rounded-lg blur opacity-20 group-hover:opacity-30 transition duration-300 pointer-events-none`}></div>
+
+                <Button
+                    variant="outline"
+                    size={size}
+                    className={`
+            relative overflow-hidden min-w-[120px]
+            bg-white/5 backdrop-blur-md
+            border border-white/20
+            text-white/90 font-medium
+            shadow-md shadow-black/20
+            hover:bg-white/10 hover:border-white/30
+            hover:shadow-lg hover:shadow-black/25
+            hover:brightness-110 hover:-translate-y-0.5
+            transition-all duration-200 ease-out
+            active:brightness-95 active:translate-y-0
+            transform-gpu
+            ${className}
+          `}
+                    style={{
+                        textRendering: 'optimizeLegibility',
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale'
+                    }}
+                    disabled={disabled || loading}
+                    {...props}
+                >
+                    {/* Subtle glass effect for secondary buttons */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
+
+                    <span className="relative z-10 flex items-center justify-center font-medium">
             {loading && <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
                         {children}
           </span>
@@ -134,7 +238,7 @@ export function GlassButton({
     if (variant === 'outline') {
         return (
             <div className="relative group">
-                {/* Subtle glow effect */}
+                {/* Enhanced glow effect for outline buttons */}
                 <div className={`absolute -inset-0.5 bg-gradient-to-r ${colorClasses.glow} rounded-lg blur opacity-20 group-hover:opacity-40 transition duration-300 pointer-events-none`}></div>
 
                 <Button
@@ -145,12 +249,12 @@ export function GlassButton({
             bg-white/5 backdrop-blur-md
             border border-white/20
             text-white/90 font-medium
-            shadow-lg
+            ${elevationClass}
             hover:bg-white/10 hover:border-white/30
-            hover:shadow-xl
-            hover:brightness-110
+            hover:shadow-xl hover:shadow-black/30
+            hover:brightness-110 hover:-translate-y-0.5
             transition-all duration-200 ease-out
-            active:brightness-95
+            active:brightness-95 active:translate-y-0
             transform-gpu
             ${className}
           `}
@@ -162,10 +266,11 @@ export function GlassButton({
                     disabled={disabled || loading}
                     {...props}
                 >
-                    {/* Inner highlight */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none"></div>
+                    {/* Enhanced inner highlight */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent pointer-events-none"></div>
 
-                    <span className="relative z-10 flex items-center font-medium">
+                    <span className="relative z-10 flex items-center justify-center font-medium">
             {loading && <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
                         {children}
           </span>
@@ -174,7 +279,7 @@ export function GlassButton({
         )
     }
 
-    // Ghost variant
+    // Ghost variant - enhanced for better UX
     return (
         <Button
             variant="ghost"
@@ -184,9 +289,10 @@ export function GlassButton({
         text-white/80 font-medium
         hover:bg-white/10 hover:text-white
         hover:backdrop-blur-sm
-        hover:brightness-110
+        hover:brightness-110 hover:-translate-y-0.5
+        hover:shadow-md hover:shadow-black/20
         transition-all duration-200 ease-out
-        active:brightness-95
+        active:brightness-95 active:translate-y-0
         transform-gpu
         ${className}
       `}
@@ -198,7 +304,10 @@ export function GlassButton({
             disabled={disabled || loading}
             {...props}
         >
-      <span className="relative z-10 flex items-center font-medium">
+      {/* Subtle glass effect on hover */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
+      
+      <span className="relative z-10 flex items-center justify-center font-medium">
         {loading && <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
           {children}
       </span>
