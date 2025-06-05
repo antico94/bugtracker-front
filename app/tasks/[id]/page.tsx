@@ -126,9 +126,16 @@ export default function TaskDetailPage() {
     const handleStepComplete = async () => {
         if (!relevantSteps.current || !task) return
 
-        // Check if note is required for this specific step
-        const noteRequired = relevantSteps.current.requiresNote || 
-            (relevantSteps.current.isTerminal && isNoDecisionTerminal(relevantSteps.current))
+        // Note Logic: Only require notes if explicitly marked as requiresNote: true
+        // DO NOT require notes for terminal steps unless specifically marked
+        // DO NOT require notes for "Clone bug in Jira" or "Check Preconditions" steps
+        const stepAction = relevantSteps.current.action?.toLowerCase() || ""
+        const isCloneBugStep = stepAction.includes("clone") && stepAction.includes("jira")
+        const isPreconditionsStep = stepAction.includes("precondition")
+        
+        // Override requiresNote for specific steps that should never require notes
+        const shouldNeverRequireNote = isCloneBugStep || isPreconditionsStep
+        const noteRequired = relevantSteps.current.requiresNote && !shouldNeverRequireNote
             
         if (noteRequired && !stepNoteText.trim()) {
             toast({
@@ -452,10 +459,10 @@ export default function TaskDetailPage() {
                     </div>
                 </header>
 
-                <div className="container py-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="container py-8">
+                    <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
                         {/* Left Column - Task Overview & Progress */}
-                        <div className="space-y-6">
+                        <div className="xl:col-span-1 space-y-6">
                             {/* Task Overview */}
                             <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
                                 <CardHeader>
@@ -629,138 +636,191 @@ export default function TaskDetailPage() {
                         </div>
 
                         {/* Right Column - Current Step Action */}
-                        <div className="lg:col-span-2 space-y-6">
-                            {/* Current Step Action */}
+                        <div className="xl:col-span-3 space-y-8">
+                            {/* Current Step Action - Enhanced Design */}
                             {relevantSteps.current && !isTaskComplete && relevantSteps.current.status !== "Done" && (
-                                <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
-                                    <CardHeader className="bg-gradient-to-r from-yellow-600/10 to-orange-600/10 backdrop-blur-sm">
-                                        <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
-                                            <MapPin className="h-5 w-5 text-yellow-400" />
-                                            Current Step: {relevantSteps.current.action}
-                                        </CardTitle>
-                                        <CardDescription className="text-gray-300">
-                                            {relevantSteps.current.isDecision ? "Decision Point" : "Action Step"} •
-                                            Step {relevantSteps.current.order} of {task.totalStepsCount}
-                                        </CardDescription>
+                                <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl border-l-4 border-l-yellow-400">
+                                    <CardHeader className="bg-gradient-to-r from-yellow-600/15 to-orange-600/15 backdrop-blur-sm border-b border-white/10">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <CardTitle className="text-2xl font-bold text-white flex items-center gap-3 mb-2">
+                                                    <div className="p-2 bg-yellow-400/20 rounded-lg">
+                                                        <MapPin className="h-6 w-6 text-yellow-400" />
+                                                    </div>
+                                                    {relevantSteps.current.action}
+                                                </CardTitle>
+                                                <CardDescription className="text-gray-300 text-base">
+                                                    {relevantSteps.current.isDecision ? "🔀 Decision Point" : "⚡ Action Step"} • 
+                                                    Step {relevantSteps.current.order} of {task.totalStepsCount}
+                                                </CardDescription>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {relevantSteps.current.isDecision && (
+                                                    <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-400/30 px-3 py-1">
+                                                        Decision Required
+                                                    </Badge>
+                                                )}
+                                                {relevantSteps.current.isTerminal && (
+                                                    <Badge className="bg-orange-500/20 text-orange-300 border-orange-400/30 px-3 py-1">
+                                                        Final Step
+                                                    </Badge>
+                                                )}
+                                            </div>
+                                        </div>
                                     </CardHeader>
-                                    <CardContent className="p-6 space-y-6">
+                                    <CardContent className="p-8 space-y-8">
                                         {/* Step Description */}
-                                        <div className="space-y-2">
-                                            <Label className="text-sm text-gray-300 flex items-center gap-2">
-                                                <Info className="h-4 w-4" />
-                                                Description
+                                        <div className="space-y-4">
+                                            <Label className="text-lg font-semibold text-white flex items-center gap-3">
+                                                <div className="p-1.5 bg-blue-400/20 rounded-lg">
+                                                    <Info className="h-5 w-5 text-blue-400" />
+                                                </div>
+                                                Step Description
                                             </Label>
-                                            <div className="p-4 bg-white/5 rounded-lg border border-white/10">
-                                                <p className="text-gray-200">{relevantSteps.current.description}</p>
+                                            <div className="p-6 bg-gradient-to-br from-white/10 to-white/5 rounded-xl border border-white/15 shadow-lg">
+                                                <p className="text-gray-100 text-base leading-relaxed">{relevantSteps.current.description}</p>
                                             </div>
                                         </div>
 
                                         {/* Step Actions */}
                                         {relevantSteps.current.isDecision ? (
-                                            <div className="space-y-4">
-                                                <Label className="text-sm text-gray-300 flex items-center gap-2">
-                                                    <GitBranch className="h-4 w-4" />
-                                                    {relevantSteps.current.decisionAnswer ? "Decision Made" : "Make Decision"}
+                                            <div className="space-y-6">
+                                                <Label className="text-lg font-semibold text-white flex items-center gap-3">
+                                                    <div className="p-1.5 bg-purple-400/20 rounded-lg">
+                                                        <GitBranch className="h-5 w-5 text-purple-400" />
+                                                    </div>
+                                                    {relevantSteps.current.decisionAnswer ? "Decision Made" : "Make Your Decision"}
                                                 </Label>
 
                                                 {/* Show decision if already made */}
                                                 {relevantSteps.current.decisionAnswer ? (
-                                                    <div className="p-4 bg-green-500/10 border border-green-400/30 rounded-lg">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <CheckCircle2 className="h-5 w-5 text-green-400" />
-                                                            <span className="font-medium text-green-300">Decision Already Made</span>
+                                                    <div className="p-6 bg-gradient-to-br from-green-500/15 to-emerald-500/10 border border-green-400/30 rounded-xl shadow-lg">
+                                                        <div className="flex items-center gap-3 mb-4">
+                                                            <div className="p-2 bg-green-400/20 rounded-lg">
+                                                                <CheckCircle2 className="h-6 w-6 text-green-400" />
+                                                            </div>
+                                                            <span className="text-lg font-semibold text-green-300">Decision Already Made</span>
                                                         </div>
-                                                        <p className="text-sm text-gray-200 mb-2">
-                                                            Decision: <span className="font-medium text-cyan-300">{relevantSteps.current.decisionAnswer}</span>
-                                                        </p>
-                                                        {relevantSteps.current.notes && (
-                                                            <p className="text-sm text-gray-300 italic">
-                                                                Notes: "{relevantSteps.current.notes}"
+                                                        <div className="space-y-3">
+                                                            <p className="text-base text-gray-200">
+                                                                Decision: <span className="font-bold text-cyan-300 text-lg">{relevantSteps.current.decisionAnswer}</span>
                                                             </p>
-                                                        )}
-                                                        {relevantSteps.current.completedAt && (
-                                                            <p className="text-xs text-gray-400 mt-2">
-                                                                Completed: {new Date(relevantSteps.current.completedAt).toLocaleString()}
-                                                            </p>
-                                                        )}
+                                                            {relevantSteps.current.notes && (
+                                                                <p className="text-sm text-gray-300 italic bg-white/5 p-3 rounded-lg">
+                                                                    Notes: "{relevantSteps.current.notes}"
+                                                                </p>
+                                                            )}
+                                                            {relevantSteps.current.completedAt && (
+                                                                <p className="text-xs text-gray-400">
+                                                                    Completed: {new Date(relevantSteps.current.completedAt).toLocaleString()}
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <>
                                                         {/* Decision Buttons */}
-                                                        <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-6">
+                                                            <div className="grid grid-cols-2 gap-8 max-w-lg mx-auto">
                                                             <GlassButton
+                                                                variant="workflow-decision"
                                                                 onClick={() => handleDecision("Yes")}
                                                                 disabled={makeDecisionLoading}
                                                                 loading={makeDecisionLoading}
                                                                 glowColor="green"
-                                                                className="h-auto p-6 flex-col gap-2"
                                                             >
                                                                 <CheckCircle2 className="h-8 w-8" />
-                                                                <span className="font-semibold">Yes</span>
+                                                                <span className="font-semibold text-lg">Yes</span>
                                                                 <span className="text-xs opacity-75">Confirm and proceed</span>
                                                             </GlassButton>
                                                             <GlassButton
+                                                                variant="workflow-decision"
                                                                 onClick={() => handleDecision("No")}
                                                                 disabled={makeDecisionLoading}
                                                                 loading={makeDecisionLoading}
                                                                 glowColor="red"
-                                                                className="h-auto p-6 flex-col gap-2"
                                                             >
                                                                 <XCircle className="h-8 w-8" />
-                                                                <span className="font-semibold">No</span>
+                                                                <span className="font-semibold text-lg">No</span>
                                                                 <span className="text-xs opacity-75">Reject and continue</span>
                                                             </GlassButton>
                                                         </div>
 
-                                                        {/* Notes for Decision */}
-                                                        <div className="space-y-2">
-                                                            <Label className="text-sm text-gray-300">
-                                                                Notes
-                                                                <span className="text-yellow-400 ml-2 text-xs">
-                                                                    (Required only if answering "No")
-                                                                </span>
-                                                            </Label>
-                                                            <Textarea
-                                                                value={stepNoteText}
-                                                                onChange={(e) => setStepNoteText(e.target.value)}
-                                                                placeholder="Add notes about your decision..."
-                                                                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none"
-                                                                rows={3}
-                                                            />
+                                                            {/* Notes for Decision */}
+                                                            <div className="space-y-4">
+                                                                <Label className="text-base font-medium text-white flex items-center gap-3">
+                                                                    <div className="p-1.5 bg-yellow-400/20 rounded-lg">
+                                                                        <MessageSquare className="h-4 w-4 text-yellow-400" />
+                                                                    </div>
+                                                                    Notes
+                                                                    <span className="text-yellow-400 text-sm font-normal">
+                                                                        (Required only if answering "No")
+                                                                    </span>
+                                                                </Label>
+                                                                <Textarea
+                                                                    value={stepNoteText}
+                                                                    onChange={(e) => setStepNoteText(e.target.value)}
+                                                                    placeholder="Add notes about your decision..."
+                                                                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none min-h-[100px] text-base"
+                                                                    rows={4}
+                                                                />
+                                                            </div>
                                                         </div>
                                                     </>
                                                 )}
                                             </div>
                                         ) : (
-                                            <div className="space-y-4">
-                                                <Label className="text-sm text-gray-300 flex items-center gap-2">
-                                                    <CheckSquare className="h-4 w-4" />
-                                                    Complete Step
+                                            <div className="space-y-6">
+                                                <Label className="text-lg font-semibold text-white flex items-center gap-3">
+                                                    <div className="p-1.5 bg-emerald-400/20 rounded-lg">
+                                                        <CheckSquare className="h-5 w-5 text-emerald-400" />
+                                                    </div>
+                                                    Complete This Step
                                                 </Label>
 
                                                 {/* Notes for Regular Step */}
-                                                <div className="space-y-2">
-                                                    <Label className="text-sm text-gray-300">
-                                                        Notes {relevantSteps.current.requiresNote && <span className="text-red-400">*</span>}
-                                                        {relevantSteps.current.isTerminal && !relevantSteps.current.requiresNote && (
-                                                            <span className="text-gray-400 ml-2 text-xs">(Optional)</span>
-                                                        )}
+                                                <div className="space-y-4">
+                                                    <Label className="text-base font-medium text-white flex items-center gap-3">
+                                                        <div className="p-1.5 bg-blue-400/20 rounded-lg">
+                                                            <MessageSquare className="h-4 w-4 text-blue-400" />
+                                                        </div>
+                                                        Notes 
+                                                        {(() => {
+                                                            const stepAction = relevantSteps.current.action?.toLowerCase() || ""
+                                                            const isCloneBugStep = stepAction.includes("clone") && stepAction.includes("jira")
+                                                            const isPreconditionsStep = stepAction.includes("precondition")
+                                                            const shouldNeverRequireNote = isCloneBugStep || isPreconditionsStep
+                                                            const isRequired = relevantSteps.current.requiresNote && !shouldNeverRequireNote
+                                                            
+                                                            if (isRequired) {
+                                                                return <span className="text-red-400 text-sm">*Required</span>
+                                                            }
+                                                            return <span className="text-gray-400 text-sm font-normal">(Optional)</span>
+                                                        })()}
                                                     </Label>
                                                     <Textarea
                                                         value={stepNoteText}
                                                         onChange={(e) => setStepNoteText(e.target.value)}
                                                         placeholder="Add notes about this step..."
-                                                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none"
-                                                        rows={4}
+                                                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none min-h-[120px] text-base"
+                                                        rows={5}
                                                     />
                                                 </div>
 
                                                 <GlassButton
+                                                    variant="workflow-action"
                                                     onClick={handleStepComplete}
-                                                    disabled={completeStepLoading || (relevantSteps.current.requiresNote && !stepNoteText.trim())}
+                                                    disabled={(() => {
+                                                        const stepAction = relevantSteps.current.action?.toLowerCase() || ""
+                                                        const isCloneBugStep = stepAction.includes("clone") && stepAction.includes("jira")
+                                                        const isPreconditionsStep = stepAction.includes("precondition")
+                                                        const shouldNeverRequireNote = isCloneBugStep || isPreconditionsStep
+                                                        const isRequired = relevantSteps.current.requiresNote && !shouldNeverRequireNote
+                                                        return completeStepLoading || (isRequired && !stepNoteText.trim())
+                                                    })()}
                                                     loading={completeStepLoading}
                                                     glowColor="emerald"
-                                                    className="w-full h-12"
+                                                    className="h-12"
                                                 >
                                                     <CheckCircle2 className="mr-2 h-5 w-5" />
                                                     Mark Step as Complete
@@ -770,13 +830,15 @@ export default function TaskDetailPage() {
                                                 </GlassButton>
 
                                                 {relevantSteps.current.isTerminal && (
-                                                    <div className="p-3 bg-orange-500/10 border border-orange-400/30 rounded-lg">
-                                                        <div className="flex items-center gap-2 text-orange-300">
-                                                            <Lightbulb className="h-4 w-4" />
-                                                            <span className="font-medium">Terminal Step</span>
+                                                    <div className="p-6 bg-gradient-to-br from-orange-500/15 to-amber-500/10 border border-orange-400/30 rounded-xl shadow-lg">
+                                                        <div className="flex items-center gap-3 text-orange-300 mb-3">
+                                                            <div className="p-2 bg-orange-400/20 rounded-lg">
+                                                                <Lightbulb className="h-5 w-5" />
+                                                            </div>
+                                                            <span className="font-semibold text-lg">Final Step</span>
                                                         </div>
-                                                        <p className="text-sm text-orange-200 mt-1">
-                                                            This is the final step in this workflow. Completing it will finish the task.
+                                                        <p className="text-base text-orange-200 leading-relaxed">
+                                                            This is the final step in this workflow. Completing it will finish the entire task.
                                                         </p>
                                                     </div>
                                                 )}

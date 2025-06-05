@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 
 interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     children: ReactNode
-    variant?: 'primary' | 'outline' | 'ghost' | 'dialog-primary' | 'dialog-secondary'
+    variant?: 'primary' | 'outline' | 'ghost' | 'dialog-primary' | 'dialog-secondary' | 'workflow-decision' | 'workflow-action'
     size?: 'sm' | 'default' | 'lg'
     glowColor?: 'blue' | 'purple' | 'emerald' | 'red' | 'yellow' | 'green' | 'orange' | 'cyan' | 'pink'
     loading?: boolean
@@ -84,6 +84,7 @@ export function GlassButton({
                                 glowColor = 'purple',
                                 loading = false,
                                 className = "",
+                                elevation = 'lg',
                                 disabled,
                                 ...props
                             }: GlassButtonProps) {
@@ -101,7 +102,7 @@ export function GlassButton({
         }
     }
 
-    const elevationClass = getElevationClasses(elevation || 'lg')
+    const elevationClass = getElevationClasses(elevation)
 
     if (variant === 'primary') {
         return (
@@ -274,6 +275,98 @@ export function GlassButton({
             {loading && <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
                         {children}
           </span>
+                </Button>
+            </div>
+        )
+    }
+
+    if (variant === 'workflow-decision') {
+        return (
+            <div className="relative group">
+                {/* Optimized glow effect for workflow decision buttons */}
+                <div className={`absolute -inset-1 bg-gradient-to-r ${colorClasses.glow} rounded-xl blur-md opacity-40 group-hover:opacity-60 group-active:opacity-70 transition-all duration-300 pointer-events-none`}></div>
+                
+                <Button
+                    className={`
+            relative overflow-hidden
+            ${colorClasses.bg} backdrop-blur-lg
+            border-2 ${colorClasses.border}
+            ${colorClasses.text} font-semibold
+            shadow-2xl shadow-black/40
+            hover:${colorClasses.bg.replace('/20', '/30')}
+            hover:border-white/50
+            hover:shadow-3xl hover:shadow-black/50
+            hover:brightness-110 hover:-translate-y-1 hover:scale-105
+            active:translate-y-0 active:scale-100 active:brightness-95
+            transition-all duration-250 ease-out
+            transform-gpu
+            flex flex-col items-center justify-center gap-2
+            min-h-[100px] min-w-[140px]
+            ${className}
+          `}
+                    style={{
+                        textRendering: 'optimizeLegibility',
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale'
+                    }}
+                    size={size}
+                    disabled={disabled || loading}
+                    {...props}
+                >
+                    {/* Enhanced glass effect with multiple layers */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/25 via-white/10 to-transparent pointer-events-none rounded-lg"></div>
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-black/20 to-transparent pointer-events-none"></div>
+                    
+                    {/* Content container for perfect centering */}
+                    <div className="relative z-10 flex flex-col items-center justify-center gap-2 text-center px-4">
+                        {loading && <div className="h-6 w-6 mb-1 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
+                        {children}
+                    </div>
+                </Button>
+            </div>
+        )
+    }
+
+    if (variant === 'workflow-action') {
+        return (
+            <div className="relative group">
+                {/* Clean glow for action buttons */}
+                <div className={`absolute -inset-0.5 bg-gradient-to-r ${colorClasses.glow} rounded-lg blur opacity-30 group-hover:opacity-50 transition-all duration-200 pointer-events-none`}></div>
+                
+                <Button
+                    className={`
+            relative overflow-hidden w-full
+            ${colorClasses.bg} backdrop-blur-md
+            border ${colorClasses.border}
+            ${colorClasses.text} font-semibold
+            shadow-lg shadow-black/30
+            hover:${colorClasses.bg.replace('/20', '/30')}
+            hover:border-white/40
+            hover:shadow-xl hover:shadow-black/40
+            hover:brightness-110 hover:-translate-y-0.5
+            active:translate-y-0 active:brightness-95
+            transition-all duration-200 ease-out
+            transform-gpu
+            ${className}
+          `}
+                    style={{
+                        textRendering: 'optimizeLegibility',
+                        WebkitFontSmoothing: 'antialiased',
+                        MozOsxFontSmoothing: 'grayscale'
+                    }}
+                    size={size}
+                    disabled={disabled || loading}
+                    {...props}
+                >
+                    {/* Refined glass effect */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/15 via-white/5 to-transparent pointer-events-none"></div>
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent pointer-events-none"></div>
+                    
+                    <span className="relative z-10 flex items-center justify-center font-semibold">
+                        {loading && <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-white/60 border-t-white"></div>}
+                        {children}
+                    </span>
                 </Button>
             </div>
         )
