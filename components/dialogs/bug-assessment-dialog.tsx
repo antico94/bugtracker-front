@@ -71,17 +71,26 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
 
     useEffect(() => {
         if (bug && isOpen) {
+            // Determine which versions to use for auto-population
+            let initialVersions: string[] = []
+            
+            if (bug.isAssessed && bug.assessedImpactedVersions) {
+                // If already assessed, use the assessed versions (allow editing)
+                initialVersions = bug.assessedImpactedVersions
+            } else if (bug.affectedVersions && bug.affectedVersions.length > 0) {
+                // If not assessed but has JIRA affected versions, auto-populate with those
+                initialVersions = bug.affectedVersions
+            }
+            
             // Pre-populate with existing assessment data if bug is already assessed
             setAssessmentData({
                 bugId: bug.bugId,
                 assessedProductType: bug.assessedProductType || ("InteractiveResponseTechnology" as ProductType),
-                assessedImpactedVersions: bug.assessedImpactedVersions || [],
+                assessedImpactedVersions: initialVersions,
             })
 
-            // Pre-select existing versions
-            if (bug.assessedImpactedVersions) {
-                setSelectedVersions(new Set(bug.assessedImpactedVersions))
-            }
+            // Pre-select versions (either assessed or auto-detected from JIRA)
+            setSelectedVersions(new Set(initialVersions))
         } else {
             // Reset for new assessment
             setSelectedVersions(new Set())
@@ -430,10 +439,17 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
                             {/* Available Versions */}
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <Label className="text-white font-medium flex items-center gap-2">
-                                        <ChevronRight className="h-4 w-4" />
-                                        Affected Versions ({selectedVersions.size} selected)
-                                    </Label>
+                                    <div className="flex items-center gap-3">
+                                        <Label className="text-white font-medium flex items-center gap-2">
+                                            <ChevronRight className="h-4 w-4" />
+                                            Affected Versions ({selectedVersions.size} selected)
+                                        </Label>
+                                        {bug && bug.affectedVersions && bug.affectedVersions.length > 0 && !bug.isAssessed && (
+                                            <Badge variant="outline" className="text-xs bg-blue-500/20 text-blue-300 border-blue-400/30">
+                                                Auto-detected from JIRA
+                                            </Badge>
+                                        )}
+                                    </div>
                                     {versionsLoading && (
                                         <div className="flex items-center gap-2 text-sm text-gray-400">
                                             <Loader2 className="h-3 w-3 animate-spin" />
