@@ -126,9 +126,24 @@ export default function TaskDetailPage() {
             })
         } catch (error) {
             console.error("Failed to complete step:", error)
+            
+            // Extract specific error message from API response
+            let errorMessage = "Failed to complete step. Please try again."
+            if (error instanceof Error) {
+                if (error.message.includes("HTTP 400")) {
+                    // Extract the detailed message after "HTTP 400: "
+                    const messageMatch = error.message.match(/HTTP 400: (.+)/)
+                    errorMessage = messageMatch ? messageMatch[1] : "Invalid request. Please check your input and try again."
+                } else if (error.message.includes("HTTP")) {
+                    errorMessage = error.message
+                } else {
+                    errorMessage = error.message
+                }
+            }
+            
             toast({
                 title: "Error",
-                description: "Failed to complete step. Please try again.",
+                description: errorMessage,
                 variant: "destructive"
             })
         }
@@ -157,9 +172,27 @@ export default function TaskDetailPage() {
             })
         } catch (error) {
             console.error("Failed to record decision:", error)
+            
+            // Extract specific error message from API response
+            let errorMessage = "Failed to record decision. Please try again."
+            if (error instanceof Error) {
+                // Check if it's a known error message pattern
+                if (error.message.includes("Decision has already been made")) {
+                    errorMessage = "A decision has already been made for this step. Please refresh the page to see the current state."
+                } else if (error.message.includes("HTTP 400")) {
+                    // Extract the detailed message after "HTTP 400: "
+                    const messageMatch = error.message.match(/HTTP 400: (.+)/)
+                    errorMessage = messageMatch ? messageMatch[1] : "Invalid request. Please check your input and try again."
+                } else if (error.message.includes("HTTP")) {
+                    errorMessage = error.message
+                } else {
+                    errorMessage = error.message
+                }
+            }
+            
             toast({
                 title: "Error",
-                description: "Failed to record decision. Please try again.",
+                description: errorMessage,
                 variant: "destructive"
             })
         }
@@ -187,9 +220,24 @@ export default function TaskDetailPage() {
             })
         } catch (error) {
             console.error("Failed to add note:", error)
+            
+            // Extract specific error message from API response
+            let errorMessage = "Failed to add note. Please try again."
+            if (error instanceof Error) {
+                if (error.message.includes("HTTP 400")) {
+                    // Extract the detailed message after "HTTP 400: "
+                    const messageMatch = error.message.match(/HTTP 400: (.+)/)
+                    errorMessage = messageMatch ? messageMatch[1] : "Invalid request. Please check your input and try again."
+                } else if (error.message.includes("HTTP")) {
+                    errorMessage = error.message
+                } else {
+                    errorMessage = error.message
+                }
+            }
+            
             toast({
                 title: "Error",
-                description: "Failed to add note. Please try again.",
+                description: errorMessage,
                 variant: "destructive"
             })
         }
@@ -544,48 +592,73 @@ export default function TaskDetailPage() {
                                             <div className="space-y-4">
                                                 <Label className="text-sm text-gray-300 flex items-center gap-2">
                                                     <GitBranch className="h-4 w-4" />
-                                                    Make Decision
+                                                    {relevantSteps.current.decisionAnswer ? "Decision Made" : "Make Decision"}
                                                 </Label>
 
-                                                {/* Decision Buttons */}
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <GlassButton
-                                                        onClick={() => handleDecision("Yes")}
-                                                        disabled={makeDecisionLoading}
-                                                        loading={makeDecisionLoading}
-                                                        glowColor="green"
-                                                        className="h-auto p-6 flex-col gap-2"
-                                                    >
-                                                        <CheckCircle2 className="h-8 w-8" />
-                                                        <span className="font-semibold">Yes</span>
-                                                        <span className="text-xs opacity-75">Confirm and proceed</span>
-                                                    </GlassButton>
-                                                    <GlassButton
-                                                        onClick={() => handleDecision("No")}
-                                                        disabled={makeDecisionLoading}
-                                                        loading={makeDecisionLoading}
-                                                        glowColor="red"
-                                                        className="h-auto p-6 flex-col gap-2"
-                                                    >
-                                                        <XCircle className="h-8 w-8" />
-                                                        <span className="font-semibold">No</span>
-                                                        <span className="text-xs opacity-75">Reject and continue</span>
-                                                    </GlassButton>
-                                                </div>
+                                                {/* Show decision if already made */}
+                                                {relevantSteps.current.decisionAnswer ? (
+                                                    <div className="p-4 bg-green-500/10 border border-green-400/30 rounded-lg">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <CheckCircle2 className="h-5 w-5 text-green-400" />
+                                                            <span className="font-medium text-green-300">Decision Already Made</span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-200 mb-2">
+                                                            Decision: <span className="font-medium text-cyan-300">{relevantSteps.current.decisionAnswer}</span>
+                                                        </p>
+                                                        {relevantSteps.current.notes && (
+                                                            <p className="text-sm text-gray-300 italic">
+                                                                Notes: "{relevantSteps.current.notes}"
+                                                            </p>
+                                                        )}
+                                                        {relevantSteps.current.completedAt && (
+                                                            <p className="text-xs text-gray-400 mt-2">
+                                                                Completed: {new Date(relevantSteps.current.completedAt).toLocaleString()}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        {/* Decision Buttons */}
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <GlassButton
+                                                                onClick={() => handleDecision("Yes")}
+                                                                disabled={makeDecisionLoading}
+                                                                loading={makeDecisionLoading}
+                                                                glowColor="green"
+                                                                className="h-auto p-6 flex-col gap-2"
+                                                            >
+                                                                <CheckCircle2 className="h-8 w-8" />
+                                                                <span className="font-semibold">Yes</span>
+                                                                <span className="text-xs opacity-75">Confirm and proceed</span>
+                                                            </GlassButton>
+                                                            <GlassButton
+                                                                onClick={() => handleDecision("No")}
+                                                                disabled={makeDecisionLoading}
+                                                                loading={makeDecisionLoading}
+                                                                glowColor="red"
+                                                                className="h-auto p-6 flex-col gap-2"
+                                                            >
+                                                                <XCircle className="h-8 w-8" />
+                                                                <span className="font-semibold">No</span>
+                                                                <span className="text-xs opacity-75">Reject and continue</span>
+                                                            </GlassButton>
+                                                        </div>
 
-                                                {/* Notes for Decision */}
-                                                <div className="space-y-2">
-                                                    <Label className="text-sm text-gray-300">
-                                                        Notes {relevantSteps.current.requiresNote && <span className="text-red-400">*</span>}
-                                                    </Label>
-                                                    <Textarea
-                                                        value={stepNoteText}
-                                                        onChange={(e) => setStepNoteText(e.target.value)}
-                                                        placeholder="Add notes about your decision..."
-                                                        className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none"
-                                                        rows={3}
-                                                    />
-                                                </div>
+                                                        {/* Notes for Decision */}
+                                                        <div className="space-y-2">
+                                                            <Label className="text-sm text-gray-300">
+                                                                Notes {relevantSteps.current.requiresNote && <span className="text-red-400">*</span>}
+                                                            </Label>
+                                                            <Textarea
+                                                                value={stepNoteText}
+                                                                onChange={(e) => setStepNoteText(e.target.value)}
+                                                                placeholder="Add notes about your decision..."
+                                                                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none"
+                                                                rows={3}
+                                                            />
+                                                        </div>
+                                                    </>
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="space-y-4">
