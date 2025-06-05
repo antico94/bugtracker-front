@@ -36,9 +36,9 @@ export class WeeklyCoreBugsRepository extends BaseRepository {
     try {
       return await this.get<WeeklyCoreBugsResponseDto>(`${this.endpoint}/current-week`)
     } catch (error) {
-      // Specifically handle 404 errors for this endpoint
-      if (error instanceof ApiError && error.status === 404) {
-        console.log("No weekly core bugs found for current week - this is expected behavior")
+      // Handle 404 errors and network errors for this endpoint
+      if (error instanceof ApiError && (error.status === 404 || error.status === 0)) {
+        console.log("No weekly core bugs found for current week or server unavailable - this is expected behavior")
         return null
       }
       // Re-throw other errors

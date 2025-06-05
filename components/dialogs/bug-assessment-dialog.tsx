@@ -65,8 +65,8 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
     // Fetch available versions based on product type
     const { data: availableVersions, loading: versionsLoading } = useProductVersions(assessmentData.assessedProductType)
 
-    // Fetch available weekly reports for assessment
-    const { weeklyCoreBugs: availableWeeklyReports, loading: weeklyReportsLoading } = useWeeklyCoreBugs({ status: "New" })
+    // Fetch available weekly reports for assessment (all active reports)
+    const { weeklyCoreBugs: availableWeeklyReports, loading: weeklyReportsLoading } = useWeeklyCoreBugs()
 
     useEffect(() => {
         if (bug && isOpen) {
