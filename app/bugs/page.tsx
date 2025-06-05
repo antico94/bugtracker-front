@@ -27,6 +27,7 @@ import {Badge} from "@/components/ui/badge"
 import {Skeleton} from "@/components/ui/skeleton"
 import {BugSeverityBadge} from "@/components/bug-severity-badge"
 import {useCoreBugs} from "@/hooks/use-core-bugs"
+import {useWeeklyCoreBugs} from "@/hooks/use-weekly-core-bugs"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,6 +78,9 @@ export default function BugsPage() {
     importLoading,
     refetch,
   } = useCoreBugs(apiFilters)
+
+  // Weekly core bugs for adding bugs to reports
+  const { addBugs: addBugToWeeklyReport } = useWeeklyCoreBugs()
 
   // Calculate stats based on the 'bugs' array (filtered by apiFilters)
   // This ensures stats cards always reflect the broader dataset counts.
@@ -149,7 +153,8 @@ export default function BugsPage() {
 
   const handleCreateBug = async (
       data: CreateCoreBugDto | UpdateCoreBugDto,
-      assessmentData?: { productType: ProductType; versions: string[] }
+      assessmentData?: { productType: ProductType; versions: string[] },
+      weeklyReportId?: string
   ) => {
     try {
       // For create, we need to ensure we have the required fields
@@ -185,6 +190,30 @@ export default function BugsPage() {
         })
       }
 
+      // If a weekly report was specified, add the bug to it
+      if (weeklyReportId && createdBug) {
+        try {
+          await addBugToWeeklyReport({
+            id: weeklyReportId,
+            bugsData: {
+              weeklyCoreBugsId: weeklyReportId,
+              bugIds: [createdBug.bugId]
+            }
+          })
+          toast({
+            title: "Added to Weekly Report",
+            description: "Bug has been added to the selected weekly report",
+          })
+        } catch (weeklyError) {
+          console.error("Failed to add bug to weekly report:", weeklyError)
+          toast({
+            title: "Weekly Report Warning",
+            description: "Bug created successfully, but failed to add to weekly report. You can add it manually.",
+            variant: "destructive",
+          })
+        }
+      }
+
       setShowCreateDialog(false)
       refetch()
     } catch (err) {
@@ -198,7 +227,11 @@ export default function BugsPage() {
     }
   }
 
-  const handleUpdateBug = async (data: CreateCoreBugDto | UpdateCoreBugDto) => {
+  const handleUpdateBug = async (
+    data: CreateCoreBugDto | UpdateCoreBugDto, 
+    assessmentData?: { productType: ProductType; versions: string[] }, 
+    weeklyReportId?: string
+  ) => {
     if (!editingBug) return
     try {
       // For update, we only need the UpdateCoreBugDto fields

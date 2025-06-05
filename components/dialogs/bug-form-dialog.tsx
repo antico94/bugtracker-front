@@ -8,14 +8,15 @@ import {Badge} from "@/components/ui/badge"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Checkbox} from "@/components/ui/checkbox"
 import {ScrollArea} from "@/components/ui/scroll-area"
-import {AlertTriangle, Bug, FileText, Info, Link, Loader2, Package, Plus, X} from "lucide-react"
+import {AlertTriangle, Bug, FileText, Info, Link, Loader2, Package, Plus, X, Calendar} from "lucide-react"
 import {useProductVersions} from "@/hooks/use-core-bugs"
+import {useWeeklyCoreBugs} from "@/hooks/use-weekly-core-bugs"
 import {BugSeverity, CoreBugResponseDto, CreateCoreBugDto, ProductType, UpdateCoreBugDto} from "@/types"
 
 interface BugFormDialogProps {
     isOpen: boolean
     onClose: () => void
-    onSubmit: (data: CreateCoreBugDto | UpdateCoreBugDto, assessmentData?: { productType: ProductType; versions: string[] }) => Promise<void>
+    onSubmit: (data: CreateCoreBugDto | UpdateCoreBugDto, assessmentData?: { productType: ProductType; versions: string[] }, weeklyReportId?: string) => Promise<void>
     bug?: CoreBugResponseDto
     loading?: boolean
 }
@@ -92,6 +93,7 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
         bugDescription: "",
         severity: 2 as BugSeverity,
         affectedVersions: [] as string[],
+        weeklyReportId: "" as string,
     })
 
     const [errors, setErrors] = useState<Record<string, string>>({})
@@ -108,6 +110,9 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
     // Fetch available versions based on product type
     const { data: availableVersions, loading: versionsLoading } = useProductVersions(productType)
 
+    // Fetch available weekly reports for new bugs only
+    const { weeklyCoreBugs: availableWeeklyReports, loading: weeklyReportsLoading } = useWeeklyCoreBugs({ status: "New" })
+
     useEffect(() => {
         if (bug && isOpen) {
             setFormData({
@@ -117,6 +122,7 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                 bugDescription: bug.bugDescription || "",
                 severity: bug.severity,
                 affectedVersions: bug.affectedVersions || [],
+                weeklyReportId: "", // Weekly reports not available for editing existing bugs
             })
             setSelectedVersions(new Set(bug.affectedVersions || []))
 
@@ -133,6 +139,7 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                 bugDescription: "",
                 severity: 2 as BugSeverity,
                 affectedVersions: [],
+                weeklyReportId: "",
             })
             setSelectedVersions(new Set())
         }
@@ -294,8 +301,11 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
             versions: Array.from(selectedVersions)
         } : undefined
 
+        // Weekly report ID for new bugs only
+        const weeklyReportId = !bug && formData.weeklyReportId ? formData.weeklyReportId : undefined
+
         try {
-            await onSubmit(submitData, assessmentData)
+            await onSubmit(submitData, assessmentData, weeklyReportId)
             onClose()
         } catch (error) {
             console.error("Failed to submit bug form:", error)
@@ -757,6 +767,45 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
                                     )}
                                 </div>
                             </div>
+
+                            {/* Weekly Report Section - Only for new bugs */}
+                            {!bug && (
+                                <div className="space-y-4 pt-6 border-t border-white/10">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Calendar className="h-5 w-5 text-orange-400" />
+                                        <h3 className="text-lg font-semibold text-white">Weekly Report (Optional)</h3>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <Label className="text-white font-medium">Add to Weekly Report</Label>
+                                        <Select
+                                            value={formData.weeklyReportId}
+                                            onValueChange={(value) => setFormData(prev => ({ ...prev, weeklyReportId: value }))}
+                                        >
+                                            <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                                                <SelectValue placeholder="Select a weekly report (optional)" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="">None (don't add to any report)</SelectItem>
+                                                {weeklyReportsLoading ? (
+                                                    <SelectItem value="" disabled>Loading weekly reports...</SelectItem>
+                                                ) : availableWeeklyReports && availableWeeklyReports.length > 0 ? (
+                                                    availableWeeklyReports.map(report => (
+                                                        <SelectItem key={report.weeklyCoreBugsId} value={report.weeklyCoreBugsId}>
+                                                            {report.name} ({new Date(report.weekStartDate).toLocaleDateString()} - {new Date(report.weekEndDate).toLocaleDateString()})
+                                                        </SelectItem>
+                                                    ))
+                                                ) : (
+                                                    <SelectItem value="" disabled>No active weekly reports available</SelectItem>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                        <p className="text-xs text-gray-400">
+                                            Optionally add this bug to an existing weekly core bugs report. Only active reports are shown.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 

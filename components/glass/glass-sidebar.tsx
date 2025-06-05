@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Bug, ClipboardList, Home, Microscope } from "lucide-react"
+import { Bug, ClipboardList, Home, Microscope, Calendar } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const navItems = [
@@ -30,6 +30,12 @@ const navItems = [
         icon: ClipboardList,
         glowColor: "emerald"
     },
+    {
+        name: "Weekly Reports",
+        href: "/weekly-core-bugs",
+        icon: Calendar,
+        glowColor: "orange"
+    },
 ]
 
 const glowColorClasses = {
@@ -37,6 +43,7 @@ const glowColorClasses = {
     purple: 'from-purple-600/20 to-pink-600/20',
     red: 'from-red-600/20 to-orange-600/20',
     emerald: 'from-emerald-600/20 to-teal-600/20',
+    orange: 'from-orange-600/20 to-amber-600/20',
 }
 
 const activeGlowClasses = {
@@ -44,6 +51,7 @@ const activeGlowClasses = {
     purple: 'bg-gradient-to-r from-purple-600 to-pink-600',
     red: 'bg-gradient-to-r from-red-600 to-orange-600',
     emerald: 'bg-gradient-to-r from-emerald-600 to-teal-600',
+    orange: 'bg-gradient-to-r from-orange-600 to-amber-600',
 }
 
 export interface GlassSidebarProps {
