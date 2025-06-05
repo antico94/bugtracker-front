@@ -20,7 +20,6 @@ export class WeeklyCoreBugsRepository extends BaseRepository {
       console.error("Failed to fetch weekly core bugs:", error)
       // Return empty array instead of throwing for better UX
       if (error instanceof ApiError && (error.status === 404 || error.status === 0)) {
-        console.log("No weekly core bugs found or server unavailable - returning empty array")
         return []
       }
       throw error
@@ -38,7 +37,6 @@ export class WeeklyCoreBugsRepository extends BaseRepository {
     } catch (error) {
       // Handle 404 errors and network errors for this endpoint
       if (error instanceof ApiError && (error.status === 404 || error.status === 0)) {
-        console.log("No weekly core bugs found for current week or server unavailable - this is expected behavior")
         return null
       }
       // Re-throw other errors
@@ -54,7 +52,16 @@ export class WeeklyCoreBugsRepository extends BaseRepository {
     totalTasks: number
     completedTasks: number
     overallCompletionRate: number
-    weeklyBreakdown: any[]
+    weeklyBreakdown: Array<{
+      weekName: string
+      weekStartDate: string
+      weekEndDate: string
+      status: string
+      bugsCount: number
+      tasksCount: number
+      completedTasksCount: number
+      completionRate: number
+    }>
   }> {
     return this.get(`${this.endpoint}/statistics`)
   }

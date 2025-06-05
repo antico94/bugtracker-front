@@ -27,7 +27,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Status } from "@/types"
+import { Status, CustomTaskResponseDto } from "@/types"
 import { useRouter } from "next/navigation"
 import { useCustomTasks } from "@/hooks/use-custom-tasks"
 
@@ -94,10 +94,10 @@ export default function TasksPage() {
     }
   }
 
-  const getCurrentStepIcon = (task: any) => {
+  const getCurrentStepIcon = (task: CustomTaskResponseDto) => {
     if (!task.currentStepId) return <MapPin className="h-4 w-4 text-gray-400" />
 
-    const currentStep = task.taskSteps?.find((step: any) => step.taskStepId === task.currentStepId)
+    const currentStep = task.taskSteps?.find((step) => step.taskStepId === task.currentStepId)
     if (currentStep?.isDecision) {
       return <GitBranch className="h-4 w-4 text-cyan-400" />
     }
@@ -356,11 +356,11 @@ function TaskCard({
                     getCurrentStepIcon,
                     style
                   }: {
-  task: any
+  task: CustomTaskResponseDto
   onStartTask: (taskId: string) => void
   getStatusIcon: (status: Status) => React.ReactNode
   getStatusColor: (status: Status) => string
-  getCurrentStepIcon: (task: any) => React.ReactNode
+  getCurrentStepIcon: (task: CustomTaskResponseDto) => React.ReactNode
   style?: React.CSSProperties
 }) {
   const progressPercentage = task.totalStepsCount > 0
@@ -368,7 +368,7 @@ function TaskCard({
       : 0
 
   // Get current step info
-  const currentStep = task.taskSteps?.find((step: any) => step.taskStepId === task.currentStepId)
+  const currentStep = task.taskSteps?.find((step) => step.taskStepId === task.currentStepId)
   const currentStepType = currentStep?.isDecision ? "decision" : "action"
 
   return (

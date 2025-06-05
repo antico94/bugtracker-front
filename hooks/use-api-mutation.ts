@@ -2,15 +2,15 @@
 
 import { useState, useCallback } from "react"
 
-export interface ApiMutationState<T> {
+export interface ApiMutationState<T, V = void> {
   data: T | null
   loading: boolean
   error: string | null
-  mutate: (variables?: any) => Promise<T>
+  mutate: (variables?: V) => Promise<T>
   reset: () => void
 }
 
-export function useApiMutation<T, V = void>(mutationFn: (variables: V) => Promise<T>): ApiMutationState<T> {
+export function useApiMutation<T, V = void>(mutationFn: (variables: V) => Promise<T>): ApiMutationState<T, V> {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, DependencyList } from "react"
 
 export interface ApiQueryState<T> {
   data: T | null
@@ -11,7 +11,7 @@ export interface ApiQueryState<T> {
 
 export function useApiQuery<T>(
   queryFn: () => Promise<T>,
-  deps: any[] = []
+  deps: DependencyList = []
 ): ApiQueryState<T> {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
@@ -23,7 +23,7 @@ export function useApiQuery<T>(
   const isFirstRender = useRef(true)
   
   // Store the actual dependencies in a ref to compare them
-  const previousDepsRef = useRef<any[]>(deps)
+  const previousDepsRef = useRef<DependencyList>(deps)
   
   // Only update the queryFn ref if it changes
   useEffect(() => {
@@ -45,7 +45,6 @@ export function useApiQuery<T>(
       setLoading(true)
       setError(null)
       
-      console.log("Fetching data...")
       const result = await queryFnRef.current()
       
       if (isMounted.current) {

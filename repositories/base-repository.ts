@@ -96,7 +96,7 @@ export abstract class BaseRepository {
     return this.request<T>(endpoint, { method: "GET" })
   }
 
-  protected async post<T>(endpoint: string, data?: any): Promise<T> {
+  protected async post<T>(endpoint: string, data?: unknown): Promise<T> {
     const body = data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined)
     return this.request<T>(endpoint, {
       method: "POST",
@@ -104,7 +104,7 @@ export abstract class BaseRepository {
     })
   }
 
-  protected async put<T>(endpoint: string, data?: any): Promise<T> {
+  protected async put<T>(endpoint: string, data?: unknown): Promise<T> {
     const body = data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined)
     return this.request<T>(endpoint, {
       method: "PUT",
@@ -112,7 +112,7 @@ export abstract class BaseRepository {
     })
   }
 
-  protected async delete<T>(endpoint: string, data?: any): Promise<T> {
+  protected async delete<T>(endpoint: string, data?: unknown): Promise<T> {
     const body = data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined)
     return this.request<T>(endpoint, {
       method: "DELETE",
@@ -120,7 +120,7 @@ export abstract class BaseRepository {
     })
   }
 
-  protected buildQueryString(params: Record<string, any>): string {
+  protected buildQueryString(params: Record<string, unknown>): string {
     const filteredParams = Object.entries(params)
       .filter(([_, value]) => value !== undefined && value !== null && value !== "")
       .map(([key, value]) => {
@@ -147,6 +147,6 @@ export class ApiError extends Error {
   }
 }
 
-export function isApiError(error: any): error is ApiError {
+export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError
 }

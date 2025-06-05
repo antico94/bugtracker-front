@@ -75,13 +75,13 @@ export default function StudiesPage() {
   )
 
   // Generic sort function
-  const sortData = <T extends Record<string, any>>(data: T[], sortConfig: SortConfig<T>): T[] => {
+  const sortData = <T extends Record<string, unknown>>(data: T[], sortConfig: SortConfig<T>): T[] => {
     if (!sortConfig.key) return data
 
     return [...data].sort((a, b) => {
-      const getNestedValue = (obj: any, path: string): any => {
+      const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
         const keys = path.split(".")
-        return keys.reduce((o, key) => (o && o[key] !== undefined ? o[key] : null), obj)
+        return keys.reduce((o: unknown, key) => (o && typeof o === 'object' && key in o ? (o as Record<string, unknown>)[key] : null), obj)
       }
 
       const aValue = getNestedValue(a, sortConfig.key as string)
@@ -143,8 +143,6 @@ export default function StudiesPage() {
   const totalTMs = trialManagers.length
   const totalStudies = studies.length
   const totalTasks = studies.reduce((acc, study) => acc + (study.tasks?.length || 0), 0)
-
-  console.log("Studies data:", { irts, trialManagers, studies })
 
   return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 relative overflow-hidden">

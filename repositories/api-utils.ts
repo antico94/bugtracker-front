@@ -11,17 +11,26 @@ export class ApiUtils {
     URL.revokeObjectURL(url)
   }
 
-  static handleApiError(error: any): string {
-    if (error?.response?.data?.message) {
-      return error.response.data.message
-    }
-    if (error?.message) {
-      return error.message
+  static handleApiError(error: unknown): string {
+    if (error && typeof error === 'object') {
+      const errorObj = error as Record<string, unknown>
+      if (errorObj.response && typeof errorObj.response === 'object') {
+        const response = errorObj.response as Record<string, unknown>
+        if (response.data && typeof response.data === 'object') {
+          const data = response.data as Record<string, unknown>
+          if (typeof data.message === 'string') {
+            return data.message
+          }
+        }
+      }
+      if (typeof errorObj.message === 'string') {
+        return errorObj.message
+      }
     }
     return 'An unexpected error occurred'
   }
 
-  static buildQueryString(params: Record<string, any>): string {
+  static buildQueryString(params: Record<string, unknown>): string {
     const searchParams = new URLSearchParams()
 
     Object.entries(params).forEach(([key, value]) => {
