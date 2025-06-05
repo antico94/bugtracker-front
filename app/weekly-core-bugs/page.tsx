@@ -8,9 +8,6 @@ import {
     FileText,
     TrendingUp,
     BarChart3,
-    Search,
-    Filter,
-    Download,
     Eye,
     Edit,
     Trash2,
@@ -28,7 +25,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { useWeeklyCoreBugs } from "@/hooks/use-weekly-core-bugs"
-import { Status, WeeklyCoreBugsResponseDto, CreateWeeklyCoreBugsDto } from "@/types"
+import { Status, CreateWeeklyCoreBugsDto } from "@/types"
 import { toast } from "@/hooks/use-toast"
 
 export default function WeeklyCoreBugsPage() {
@@ -43,10 +40,8 @@ export default function WeeklyCoreBugsPage() {
         refetch,
         create: createWeeklyReport,
         delete: deleteWeeklyReport,
-        updateStatus,
         createLoading: createWeeklyReportLoading,
-        deleteLoading: deleteWeeklyReportLoading,
-        updateStatusLoading
+        deleteLoading: deleteWeeklyReportLoading
     } = useWeeklyCoreBugs()
 
     // Filter weekly reports based on search and status
@@ -94,8 +89,8 @@ export default function WeeklyCoreBugsPage() {
             })
             
             router.push(`/weekly-core-bugs/${newReport.weeklyCoreBugsId}`)
-        } catch (error) {
-            console.error("Failed to create weekly report:", error)
+        } catch (err: unknown) {
+            console.error("Failed to create weekly report:", err)
             toast({
                 title: "Error",
                 description: "Failed to create weekly report. Please try again.",
@@ -111,8 +106,8 @@ export default function WeeklyCoreBugsPage() {
                 title: "Report Deleted",
                 description: "Weekly report has been deleted successfully."
             })
-        } catch (error) {
-            console.error("Failed to delete report:", error)
+        } catch (err: unknown) {
+            console.error("Failed to delete report:", err)
             toast({
                 title: "Error",
                 description: "Failed to delete report. Please try again.",
@@ -121,22 +116,6 @@ export default function WeeklyCoreBugsPage() {
         }
     }
 
-    const handleStatusUpdate = async (reportId: string, newStatus: Status) => {
-        try {
-            await updateStatus({ id: reportId, status: newStatus })
-            toast({
-                title: "Status Updated",
-                description: `Report status has been updated to ${newStatus}.`
-            })
-        } catch (error) {
-            console.error("Failed to update status:", error)
-            toast({
-                title: "Error",
-                description: "Failed to update status. Please try again.",
-                variant: "destructive"
-            })
-        }
-    }
 
     const getStatusIcon = (status: Status) => {
         switch (status) {
@@ -182,11 +161,9 @@ export default function WeeklyCoreBugsPage() {
                     icon={AlertTriangle}
                     title="Failed to Load Weekly Reports"
                     description={error}
-                    action={
-                        <GlassButton onClick={() => refetch()} glowColor="blue">
-                            Try Again
-                        </GlassButton>
-                    }
+                    actionLabel="Try Again"
+                    onAction={() => refetch()}
+                    glowColor="blue"
                 />
             </div>
         )
@@ -195,21 +172,16 @@ export default function WeeklyCoreBugsPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900">
             {/* Header */}
-            <GlassPageHeader
-                title="Weekly Core Bugs"
-                description="Manage and track weekly core bug reports"
-                icon={Calendar}
-                actions={
-                    <GlassButton
-                        onClick={handleCreateWeeklyReport}
-                        loading={createWeeklyReportLoading}
-                        glowColor="purple"
-                    >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Weekly Report
-                    </GlassButton>
-                }
-            />
+            <GlassPageHeader title="Weekly Core Bugs">
+                <GlassButton
+                    onClick={handleCreateWeeklyReport}
+                    loading={createWeeklyReportLoading}
+                    glowColor="purple"
+                >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Weekly Report
+                </GlassButton>
+            </GlassPageHeader>
 
             <div className="container py-6">
                 {/* Overall Statistics */}
@@ -277,17 +249,14 @@ export default function WeeklyCoreBugsPage() {
                                 ? "No weekly reports match your current filters."
                                 : "Start by creating your first weekly core bugs report."
                         }
-                        action={
-                            <GlassButton
-                                onClick={handleCreateWeeklyReport}
-                                loading={createWeeklyReportLoading}
-                                glowColor="purple"
-                            >
-                                <Plus className="mr-2 h-4 w-4" />
-                                Create Weekly Report
-                            </GlassButton>
-                        }
-                    />
+                        actionLabel="Create Weekly Report"
+                        onAction={handleCreateWeeklyReport}
+                        glowColor="purple"
+                    >
+                        {createWeeklyReportLoading && (
+                            <div className="mt-4 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        )}
+                    </GlassEmptyState>
                 ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                         {filteredReports.map((report) => (

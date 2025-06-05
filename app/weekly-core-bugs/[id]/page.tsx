@@ -4,14 +4,7 @@ import React, { useState, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
     ArrowLeft,
-    Calendar,
     Plus,
-    FileText,
-    TrendingUp,
-    BarChart3,
-    Search,
-    Filter,
-    Download,
     Edit,
     Trash2,
     CheckCircle2,
@@ -19,27 +12,19 @@ import {
     AlertTriangle,
     ExternalLink,
     Settings,
-    Bug,
-    Target,
-    PlayCircle,
-    PauseCircle,
-    Archive
+    Bug
 } from "lucide-react"
 import { GlassButton } from "@/components/glass/glass-button"
 import { GlassCard } from "@/components/glass/glass-card"
-import { GlassStatsCard } from "@/components/glass/glass-stats-card"
 import { GlassEmptyState } from "@/components/glass/glass-empty-state"
 import { GlassSearchBar } from "@/components/glass/glass-search-bar"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { BugSeverityBadge } from "@/components/bug-severity-badge"
 import { WeeklyStatsOverview } from "@/components/weekly-stats-overview"
 import BugSelectionDialog from "@/components/dialogs/bug-selection-dialog"
 import { useWeeklyCoreBug, useWeeklyCoreBugs } from "@/hooks/use-weekly-core-bugs"
-import { useCoreBugs } from "@/hooks/use-core-bugs"
 import { BugSeverity, Status } from "@/types"
 import { toast } from "@/hooks/use-toast"
 
@@ -59,10 +44,6 @@ export default function WeeklyCoreBugDetailPage() {
         refetch
     } = useWeeklyCoreBug(weeklyReportId)
 
-    const {
-        bugs: allCoreBugs,
-        loading: coreBugsLoading
-    } = useCoreBugs()
 
     const {
         updateStatus,
@@ -88,13 +69,6 @@ export default function WeeklyCoreBugDetailPage() {
         })
     }, [weeklyReport?.weeklyCoreBugEntries, searchQuery, severityFilter])
 
-    // Get available bugs to add (not already in this weekly report)
-    const availableBugs = useMemo(() => {
-        if (!allCoreBugs || !weeklyReport) return []
-        
-        const existingBugIds = new Set(weeklyReport.weeklyCoreBugEntries.map(entry => entry.bugId))
-        return allCoreBugs.filter(bug => !existingBugIds.has(bug.bugId) && bug.isAssessed)
-    }, [allCoreBugs, weeklyReport])
 
     const handleStatusUpdate = async (newStatus: Status) => {
         try {
@@ -188,18 +162,6 @@ export default function WeeklyCoreBugDetailPage() {
         }
     }
 
-    const getTaskStatusColor = (status: Status) => {
-        switch (status) {
-            case "New":
-                return "bg-blue-500/20 text-blue-300 border-blue-400/30"
-            case "InProgress":
-                return "bg-yellow-500/20 text-yellow-300 border-yellow-400/30"
-            case "Done":
-                return "bg-green-500/20 text-green-300 border-green-400/30"
-            default:
-                return "bg-gray-500/20 text-gray-300 border-gray-400/30"
-        }
-    }
 
     if (loading) {
         return (
@@ -219,11 +181,9 @@ export default function WeeklyCoreBugDetailPage() {
                     icon={AlertTriangle}
                     title="Weekly Report Not Found"
                     description={error || "The requested weekly report could not be found."}
-                    action={
-                        <GlassButton onClick={() => router.push("/weekly-core-bugs")} glowColor="blue">
-                            Back to Weekly Reports
-                        </GlassButton>
-                    }
+                    actionLabel="Back to Weekly Reports"
+                    onAction={() => router.push("/weekly-core-bugs")}
+                    glowColor="blue"
                 />
             </div>
         )
@@ -261,8 +221,8 @@ export default function WeeklyCoreBugDetailPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                                const nextStatus = weeklyReport.status === "New" ? "InProgress" :
-                                                weeklyReport.status === "InProgress" ? "Done" : "New"
+                                const nextStatus = weeklyReport.status === Status.New ? Status.InProgress :
+                                                weeklyReport.status === Status.InProgress ? Status.Done : Status.New
                                 handleStatusUpdate(nextStatus)
                             }}
                             loading={updateStatusLoading}
@@ -350,30 +310,24 @@ export default function WeeklyCoreBugDetailPage() {
                                 ? "No bugs match your current filters."
                                 : "This weekly report doesn't contain any bugs yet."
                         }
-                        action={
-                            <GlassButton
-                                onClick={() => setShowAddBugsDialog(true)}
-                                glowColor="green"
-                            >
-                                <Plus className="mr-2 h-4 w-4" />
-                                Add Bugs
-                            </GlassButton>
-                        }
+                        actionLabel="Add Bugs"
+                        onAction={() => setShowAddBugsDialog(true)}
+                        glowColor="green"
                     />
                 ) : (
                     <div className="space-y-4">
                         {filteredBugs.map((entry) => (
-                            <GlassCard key={entry.coreBug.bugId} className="p-6" glowColor="blue">
+                            <GlassCard key={entry.coreBug?.bugId} className="p-6" glowColor="blue">
                                 <div className="space-y-4">
                                     {/* Bug Header */}
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <Badge variant="outline" className="font-mono bg-red-500/10 border-red-400/30 text-red-300 text-xs">
-                                                    {entry.coreBug.jiraKey}
+                                                    {entry.coreBug?.jiraKey}
                                                 </Badge>
-                                                <BugSeverityBadge severity={entry.coreBug.severity} />
-                                                {entry.coreBug.jiraLink && (
+                                                <BugSeverityBadge severity={entry.coreBug?.severity || BugSeverity.None} />
+                                                {entry.coreBug?.jiraLink && (
                                                     <a
                                                         href={entry.coreBug.jiraLink}
                                                         target="_blank"
@@ -385,16 +339,16 @@ export default function WeeklyCoreBugDetailPage() {
                                                 )}
                                             </div>
                                             <h3 className="text-lg font-semibold text-white mb-1">
-                                                {entry.coreBug.bugTitle}
+                                                {entry.coreBug?.bugTitle}
                                             </h3>
                                             <p className="text-sm text-gray-400">
-                                                {entry.coreBug.bugDescription}
+                                                {entry.coreBug?.bugTitle || 'No description available'}
                                             </p>
                                         </div>
                                         <GlassButton
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => handleRemoveBug(entry.coreBug.bugId)}
+                                            onClick={() => handleRemoveBug(entry.coreBug?.bugId || '')}
                                             loading={removeBugsLoading}
                                             glowColor="red"
                                         >
@@ -407,15 +361,15 @@ export default function WeeklyCoreBugDetailPage() {
                                         <>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                 <div className="text-center p-3 bg-white/5 rounded-lg">
-                                                    <div className="text-lg font-semibold text-white">{entry.coreBug.taskCount}</div>
+                                                    <div className="text-lg font-semibold text-white">{entry.coreBug?.taskCount || 0}</div>
                                                     <div className="text-sm text-gray-400">Total Tasks</div>
                                                 </div>
                                                 <div className="text-center p-3 bg-white/5 rounded-lg">
-                                                    <div className="text-lg font-semibold text-yellow-400">{entry.coreBug.taskCount - entry.coreBug.completedTaskCount}</div>
+                                                    <div className="text-lg font-semibold text-yellow-400">{(entry.coreBug?.taskCount || 0) - (entry.coreBug?.completedTaskCount || 0)}</div>
                                                     <div className="text-sm text-gray-400">In Progress</div>
                                                 </div>
                                                 <div className="text-center p-3 bg-white/5 rounded-lg">
-                                                    <div className="text-lg font-semibold text-green-400">{entry.coreBug.completedTaskCount}</div>
+                                                    <div className="text-lg font-semibold text-green-400">{entry.coreBug?.completedTaskCount || 0}</div>
                                                     <div className="text-sm text-gray-400">Completed</div>
                                                 </div>
                                             </div>
@@ -424,9 +378,9 @@ export default function WeeklyCoreBugDetailPage() {
                                             <div className="space-y-2">
                                                 <div className="flex justify-between text-sm">
                                                     <span className="text-gray-400">Progress</span>
-                                                    <span className="text-white">{entry.coreBug.taskCount > 0 ? ((entry.coreBug.completedTaskCount / entry.coreBug.taskCount) * 100).toFixed(1) : 0}%</span>
+                                                    <span className="text-white">{(entry.coreBug?.taskCount || 0) > 0 ? (((entry.coreBug?.completedTaskCount || 0) / (entry.coreBug?.taskCount || 1)) * 100).toFixed(1) : 0}%</span>
                                                 </div>
-                                                <Progress value={entry.coreBug.taskCount > 0 ? (entry.coreBug.completedTaskCount / entry.coreBug.taskCount) * 100 : 0} className="h-2" />
+                                                <Progress value={(entry.coreBug?.taskCount || 0) > 0 ? ((entry.coreBug?.completedTaskCount || 0) / (entry.coreBug?.taskCount || 1)) * 100 : 0} className="h-2" />
                                             </div>
                                         </>
                                     )}
