@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { useRepositories } from "@/repositories"
 import { useApiQuery } from "@/hooks/use-api-query"
 import { useApiMutation } from "@/hooks/use-api-mutation"
@@ -14,7 +15,9 @@ import type {
 export function useWeeklyCoreBugs(params?: WeeklyCoreBugsQueryParams) {
   const { weeklyCoreBugs } = useRepositories()
 
-  const query = useApiQuery(() => weeklyCoreBugs.getAll(params), [params])
+  // Stabilize params object to prevent infinite re-renders
+  const stableParams = useMemo(() => params, [JSON.stringify(params)])
+  const query = useApiQuery(() => weeklyCoreBugs.getAll(stableParams), [stableParams])
 
   const createMutation = useApiMutation((data: CreateWeeklyCoreBugsDto) => weeklyCoreBugs.create(data))
 

@@ -111,7 +111,7 @@ export default function BugFormDialog({ isOpen, onClose, onSubmit, bug, loading 
     const { data: availableVersions, loading: versionsLoading } = useProductVersions(productType)
 
     // Fetch available weekly reports for new bugs only
-    const { weeklyCoreBugs: availableWeeklyReports, loading: weeklyReportsLoading } = useWeeklyCoreBugs({ status: "New" })
+    const { weeklyCoreBugs: availableWeeklyReports, loading: weeklyReportsLoading } = useWeeklyCoreBugs()
 
     useEffect(() => {
         if (bug && isOpen) {

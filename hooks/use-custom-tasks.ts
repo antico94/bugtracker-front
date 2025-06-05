@@ -13,8 +13,9 @@ import type {
 
 export function useCustomTasks(params?: CustomTaskQueryParams) {
   const { customTasks } = useRepositories()
+  const paramsString = JSON.stringify(params || {})
 
-  const query = useApiQuery(() => customTasks.getAll(params), [params])
+  const query = useApiQuery(() => customTasks.getAll(params), [paramsString])
 
   const createMutation = useApiMutation((data: CreateCustomTaskDto) => customTasks.create(data))
 
