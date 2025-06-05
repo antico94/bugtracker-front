@@ -112,8 +112,12 @@ export abstract class BaseRepository {
     })
   }
 
-  protected async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: "DELETE" })
+  protected async delete<T>(endpoint: string, data?: any): Promise<T> {
+    const body = data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined)
+    return this.request<T>(endpoint, {
+      method: "DELETE",
+      body,
+    })
   }
 
   protected buildQueryString(params: Record<string, any>): string {

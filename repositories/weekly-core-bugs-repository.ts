@@ -13,8 +13,18 @@ export class WeeklyCoreBugsRepository extends BaseRepository {
   private endpoint = "WeeklyCoreBugs"
 
   async getAll(params?: WeeklyCoreBugsQueryParams): Promise<WeeklyCoreBugsResponseDto[]> {
-    const queryString = params ? this.buildQueryString(params) : ""
-    return this.get<WeeklyCoreBugsResponseDto[]>(`${this.endpoint}${queryString}`)
+    try {
+      const queryString = params ? this.buildQueryString(params) : ""
+      return await this.get<WeeklyCoreBugsResponseDto[]>(`${this.endpoint}${queryString}`)
+    } catch (error) {
+      console.error("Failed to fetch weekly core bugs:", error)
+      // Return empty array instead of throwing for better UX
+      if (error instanceof ApiError && (error.status === 404 || error.status === 0)) {
+        console.log("No weekly core bugs found or server unavailable - returning empty array")
+        return []
+      }
+      throw error
+    }
   }
 
   async getById(id: string): Promise<WeeklyCoreBugsResponseDto> {
@@ -74,7 +84,7 @@ export class WeeklyCoreBugsRepository extends BaseRepository {
     message: string
     removedCount: number
   }> {
-    return this.post<{ message: string; removedCount: number }>(`${this.endpoint}/${id}/remove-bugs`, bugsData)
+    return this.delete<{ message: string; removedCount: number }>(`${this.endpoint}/${id}/remove-bugs`, bugsData)
   }
 
   async updateStatus(id: string, status: Status): Promise<{ message: string }> {

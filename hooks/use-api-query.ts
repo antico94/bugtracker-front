@@ -58,7 +58,19 @@ export function useApiQuery<T>(
       console.error("API Query Error:", err)
       
       if (isMounted.current) {
-        setError(err instanceof Error ? err.message : "An error occurred")
+        // Better error messages for common issues
+        let errorMessage = "An error occurred"
+        if (err instanceof Error) {
+          if (err.message.includes("Failed to fetch")) {
+            errorMessage = "Unable to connect to the server. Please check if the backend is running."
+          } else if (err.message.includes("404")) {
+            errorMessage = err.message
+          } else {
+            errorMessage = err.message
+          }
+        }
+        
+        setError(errorMessage)
         setData(null)
         setLoading(false)
       }
