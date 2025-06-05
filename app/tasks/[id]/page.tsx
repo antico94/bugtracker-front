@@ -44,7 +44,8 @@ export default function TaskDetailPage() {
     const params = useParams()
     const taskId = params.id as string
 
-    const [noteText, setNoteText] = useState("")
+    const [stepNoteText, setStepNoteText] = useState("")
+    const [generalNoteText, setGeneralNoteText] = useState("")
     const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["current-step"]))
 
     // Fetch task data from API
@@ -97,7 +98,7 @@ export default function TaskDetailPage() {
         if (!relevantSteps.current || !task) return
 
         // Check if terminal step requires note
-        if (relevantSteps.current.isTerminal && !noteText.trim()) {
+        if (relevantSteps.current.isTerminal && !stepNoteText.trim()) {
             toast({
                 title: "Note Required",
                 description: "Terminal steps require a note before completion.",
@@ -112,11 +113,11 @@ export default function TaskDetailPage() {
                 stepData: {
                     taskId: task.taskId,
                     taskStepId: relevantSteps.current.taskStepId,
-                    notes: noteText.trim() || undefined
+                    notes: stepNoteText.trim() || undefined
                 }
             })
 
-            setNoteText("")
+            setStepNoteText("")
             await refetch() // Refresh task data
 
             toast({
@@ -143,11 +144,11 @@ export default function TaskDetailPage() {
                     taskId: task.taskId,
                     taskStepId: relevantSteps.current.taskStepId,
                     decisionAnswer: decision,
-                    notes: noteText.trim() || undefined
+                    notes: stepNoteText.trim() || undefined
                 }
             })
 
-            setNoteText("")
+            setStepNoteText("")
             await refetch() // Refresh task data
 
             toast({
@@ -165,19 +166,19 @@ export default function TaskDetailPage() {
     }
 
     const handleAddNote = async () => {
-        if (!task || !noteText.trim()) return
+        if (!task || !generalNoteText.trim()) return
 
         try {
             await addNote({
                 id: task.taskId,
                 note: {
                     taskId: task.taskId,
-                    content: noteText.trim(),
+                    content: generalNoteText.trim(),
                     createdBy: "Current User" // In real app, get from auth context
                 }
             })
 
-            setNoteText("")
+            setGeneralNoteText("")
             await refetch() // Refresh task data
 
             toast({
@@ -573,8 +574,8 @@ export default function TaskDetailPage() {
                                                         Notes {relevantSteps.current.requiresNote && <span className="text-red-400">*</span>}
                                                     </Label>
                                                     <Textarea
-                                                        value={noteText}
-                                                        onChange={(e) => setNoteText(e.target.value)}
+                                                        value={stepNoteText}
+                                                        onChange={(e) => setStepNoteText(e.target.value)}
                                                         placeholder="Add notes about your decision..."
                                                         className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none"
                                                         rows={3}
@@ -597,8 +598,8 @@ export default function TaskDetailPage() {
                                                         )}
                                                     </Label>
                                                     <Textarea
-                                                        value={noteText}
-                                                        onChange={(e) => setNoteText(e.target.value)}
+                                                        value={stepNoteText}
+                                                        onChange={(e) => setStepNoteText(e.target.value)}
                                                         placeholder="Add notes about this step..."
                                                         className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none"
                                                         rows={4}
@@ -607,7 +608,7 @@ export default function TaskDetailPage() {
 
                                                 <Button
                                                     onClick={handleStepComplete}
-                                                    disabled={completeStepLoading || ((relevantSteps.current.requiresNote || relevantSteps.current.isTerminal) && !noteText.trim())}
+                                                    disabled={completeStepLoading || ((relevantSteps.current.requiresNote || relevantSteps.current.isTerminal) && !stepNoteText.trim())}
                                                     className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg h-12"
                                                 >
                                                     <CheckCircle2 className="mr-2 h-5 w-5" />
@@ -683,15 +684,15 @@ export default function TaskDetailPage() {
                                         <div className="space-y-2">
                                             <Label className="text-sm text-gray-300">Add Note</Label>
                                             <Textarea
-                                                value={noteText}
-                                                onChange={(e) => setNoteText(e.target.value)}
+                                                value={generalNoteText}
+                                                onChange={(e) => setGeneralNoteText(e.target.value)}
                                                 placeholder="Add a note about this task..."
                                                 className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none"
                                                 rows={3}
                                             />
                                             <Button
                                                 onClick={handleAddNote}
-                                                disabled={!noteText.trim() || addNoteLoading}
+                                                disabled={!generalNoteText.trim() || addNoteLoading}
                                                 size="sm"
                                                 className="bg-purple-600 hover:bg-purple-700"
                                             >
