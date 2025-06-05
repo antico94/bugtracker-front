@@ -6,11 +6,11 @@ export enum Status {
 }
 
 export enum BugSeverity {
-  Critical = "Critical",
-  Major = "Major",
-  Moderate = "Moderate",
-  Minor = "Minor",
   None = "None",
+  Minor = "Minor", 
+  Moderate = "Moderate",
+  Major = "Major",
+  Critical = "Critical",
 }
 
 export const severityMap: Record<string, BugSeverity> = {

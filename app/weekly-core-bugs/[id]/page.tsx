@@ -38,7 +38,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { BugSeverityBadge } from "@/components/bug-severity-badge"
 import { WeeklyStatsOverview } from "@/components/weekly-stats-overview"
 import BugSelectionDialog from "@/components/dialogs/bug-selection-dialog"
-import { useWeeklyCoreBug } from "@/hooks/use-weekly-core-bugs"
+import { useWeeklyCoreBug, useWeeklyCoreBugs } from "@/hooks/use-weekly-core-bugs"
 import { useCoreBugs } from "@/hooks/use-core-bugs"
 import { BugSeverity, Status } from "@/types"
 import { toast } from "@/hooks/use-toast"
@@ -261,8 +261,8 @@ export default function WeeklyCoreBugDetailPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => {
-                                const nextStatus = weeklyReport.status === "Draft" ? "InProgress" :
-                                                weeklyReport.status === "InProgress" ? "Completed" : "Draft"
+                                const nextStatus = weeklyReport.status === "New" ? "InProgress" :
+                                                weeklyReport.status === "InProgress" ? "Done" : "New"
                                 handleStatusUpdate(nextStatus)
                             }}
                             loading={updateStatusLoading}
@@ -403,29 +403,33 @@ export default function WeeklyCoreBugDetailPage() {
                                     </div>
 
                                     {/* Task Statistics */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        <div className="text-center p-3 bg-white/5 rounded-lg">
-                                            <div className="text-lg font-semibold text-white">{entry.totalTasksCount}</div>
-                                            <div className="text-sm text-gray-400">Total Tasks</div>
-                                        </div>
-                                        <div className="text-center p-3 bg-white/5 rounded-lg">
-                                            <div className="text-lg font-semibold text-yellow-400">{entry.inProgressTasksCount}</div>
-                                            <div className="text-sm text-gray-400">In Progress</div>
-                                        </div>
-                                        <div className="text-center p-3 bg-white/5 rounded-lg">
-                                            <div className="text-lg font-semibold text-green-400">{entry.completedTasksCount}</div>
-                                            <div className="text-sm text-gray-400">Completed</div>
-                                        </div>
-                                    </div>
+                                    {entry.coreBug && (
+                                        <>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                <div className="text-center p-3 bg-white/5 rounded-lg">
+                                                    <div className="text-lg font-semibold text-white">{entry.coreBug.taskCount}</div>
+                                                    <div className="text-sm text-gray-400">Total Tasks</div>
+                                                </div>
+                                                <div className="text-center p-3 bg-white/5 rounded-lg">
+                                                    <div className="text-lg font-semibold text-yellow-400">{entry.coreBug.taskCount - entry.coreBug.completedTaskCount}</div>
+                                                    <div className="text-sm text-gray-400">In Progress</div>
+                                                </div>
+                                                <div className="text-center p-3 bg-white/5 rounded-lg">
+                                                    <div className="text-lg font-semibold text-green-400">{entry.coreBug.completedTaskCount}</div>
+                                                    <div className="text-sm text-gray-400">Completed</div>
+                                                </div>
+                                            </div>
 
-                                    {/* Progress Bar */}
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-gray-400">Progress</span>
-                                            <span className="text-white">{entry.completionPercentage.toFixed(1)}%</span>
-                                        </div>
-                                        <Progress value={entry.completionPercentage} className="h-2" />
-                                    </div>
+                                            {/* Progress Bar */}
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-gray-400">Progress</span>
+                                                    <span className="text-white">{entry.coreBug.taskCount > 0 ? ((entry.coreBug.completedTaskCount / entry.coreBug.taskCount) * 100).toFixed(1) : 0}%</span>
+                                                </div>
+                                                <Progress value={entry.coreBug.taskCount > 0 ? (entry.coreBug.completedTaskCount / entry.coreBug.taskCount) * 100 : 0} className="h-2" />
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
                             </GlassCard>
                         ))}
