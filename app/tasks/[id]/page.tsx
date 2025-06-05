@@ -69,10 +69,39 @@ export default function TaskDetailPage() {
             .filter(step => step.status === "Done")
             .sort((a, b) => a.order - b.order)
 
-        const currentStep = task.taskSteps.find(step => step.taskStepId === task.currentStepId)
+        // Get the step indicated by currentStepId from backend
+        let currentStep = task.taskSteps.find(step => step.taskStepId === task.currentStepId)
+        
+        // Defensive check: if the "current" step is already completed, find the actual next step
+        if (currentStep && currentStep.status === "Done") {
+            console.warn("Backend currentStepId points to completed step. Finding actual next step...")
+            
+            // If it's a decision step that's completed, find the next step based on the decision
+            if (currentStep.isDecision && currentStep.decisionAnswer) {
+                const nextStepId = currentStep.decisionAnswer === "Yes" 
+                    ? currentStep.nextStepIfYes 
+                    : currentStep.nextStepIfNo
+                
+                if (nextStepId) {
+                    const nextStep = task.taskSteps.find(s => s.taskStepId === nextStepId)
+                    if (nextStep && nextStep.status !== "Done") {
+                        currentStep = nextStep
+                    }
+                }
+            } else {
+                // For non-decision completed steps, find the next incomplete step by order
+                const sortedSteps = [...task.taskSteps].sort((a, b) => a.order - b.order)
+                const nextIncompleteStep = sortedSteps.find(step => 
+                    step.order > currentStep!.order && step.status !== "Done"
+                )
+                if (nextIncompleteStep) {
+                    currentStep = nextIncompleteStep
+                }
+            }
+        }
 
         let nextSteps: Array<{ step: any, condition: string }> = []
-        if (currentStep?.isDecision) {
+        if (currentStep?.isDecision && currentStep.status !== "Done") {
             // For decision steps, show both possible next steps
             if (currentStep.nextStepIfYes) {
                 const yesStep = task.taskSteps.find(s => s.taskStepId === currentStep.nextStepIfYes)
@@ -563,7 +592,7 @@ export default function TaskDetailPage() {
                         {/* Right Column - Current Step Action */}
                         <div className="lg:col-span-2 space-y-6">
                             {/* Current Step Action */}
-                            {relevantSteps.current && !isTaskComplete && (
+                            {relevantSteps.current && !isTaskComplete && relevantSteps.current.status !== "Done" && (
                                 <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
                                     <CardHeader className="bg-gradient-to-r from-yellow-600/10 to-orange-600/10 backdrop-blur-sm">
                                         <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
@@ -736,6 +765,56 @@ export default function TaskDetailPage() {
                                                 <SkipForward className="mr-2 h-4 w-4" />
                                                 Move to Next Task
                                             </GlassButton>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* Waiting for Next Step Message */}
+                            {!isTaskComplete && relevantSteps.current && relevantSteps.current.status === "Done" && (
+                                <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
+                                    <CardContent className="p-8 text-center">
+                                        <div className="space-y-4">
+                                            <div className="p-4 bg-blue-500/20 rounded-full w-fit mx-auto">
+                                                <Clock className="h-12 w-12 text-blue-400" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-semibold text-white mb-2">Step Complete - Processing...</h3>
+                                                <p className="text-gray-300 mb-4">
+                                                    The current step has been completed. The system is processing the workflow to determine the next step.
+                                                </p>
+                                                <div className="p-3 bg-yellow-500/10 border border-yellow-400/30 rounded-lg">
+                                                    <p className="text-sm text-yellow-300">
+                                                        Please refresh the page or wait a moment for the next step to appear.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <GlassButton
+                                                onClick={() => window.location.reload()}
+                                                glowColor="blue"
+                                            >
+                                                <Undo2 className="mr-2 h-4 w-4" />
+                                                Refresh Page
+                                            </GlassButton>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* No Current Step Message */}
+                            {!isTaskComplete && !relevantSteps.current && (
+                                <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
+                                    <CardContent className="p-8 text-center">
+                                        <div className="space-y-4">
+                                            <div className="p-4 bg-gray-500/20 rounded-full w-fit mx-auto">
+                                                <AlertTriangle className="h-12 w-12 text-gray-400" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-semibold text-white mb-2">No Current Step</h3>
+                                                <p className="text-gray-300">
+                                                    There's no current step defined for this task. This may indicate a workflow configuration issue.
+                                                </p>
+                                            </div>
                                         </div>
                                     </CardContent>
                                 </Card>
