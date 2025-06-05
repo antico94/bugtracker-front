@@ -228,9 +228,9 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
             />
 
             {/* Dialog */}
-            <div className="relative w-full max-w-3xl max-h-[95vh] overflow-hidden">
+            <div className="relative w-full max-w-2xl max-h-[90vh] overflow-hidden">
                 <div className={`absolute inset-0 bg-gradient-to-r ${getColorClass(selectedProduct?.color)} rounded-2xl blur-xl`}></div>
-                <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+                <Card className="relative bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                     <CardHeader className="border-b border-white/10 bg-gradient-to-r from-green-600/10 to-emerald-600/10 backdrop-blur-sm shrink-0">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -260,7 +260,7 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
                         </div>
                     </CardHeader>
 
-                    <ScrollArea className="flex-1">
+                    <ScrollArea className="flex-1 overflow-y-auto">
                         <CardContent className="p-6 space-y-6">
                             {/* Bug Information Card */}
                             <div className="relative overflow-hidden">
@@ -536,12 +536,10 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
                             )}
 
                             {/* Weekly Report Section */}
-                            <div className="space-y-4 pt-6 border-t-2 border-orange-400/30 bg-gradient-to-r from-orange-500/5 to-yellow-500/5 p-4 rounded-lg">
+                            <div className="space-y-4 pt-6 border-t border-white/10">
                                 <div className="flex items-center gap-2 mb-4">
-                                    <div className="p-2 bg-orange-500/20 rounded-lg">
-                                        <Calendar className="h-5 w-5 text-orange-400" />
-                                    </div>
-                                    <h3 className="text-lg font-semibold text-white">Add to Weekly Report (Optional)</h3>
+                                    <Calendar className="h-5 w-5 text-orange-400" />
+                                    <h3 className="text-lg font-semibold text-white">Weekly Report (Optional)</h3>
                                 </div>
 
                                 <div className="space-y-3">
