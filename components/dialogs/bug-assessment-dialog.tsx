@@ -265,32 +265,12 @@ export function BugAssessmentDialog({ isOpen, onClose, onSubmit, bug, loading = 
                             {/* Bug Information Card */}
                             <div className="relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-xl"></div>
-                                <div className="relative p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <div className="flex-1 min-w-0 mr-4">
-                                            <h4 className="font-semibold text-white text-lg truncate">{bug.bugTitle}</h4>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            {bug.jiraLink ? (
-                                                <a
-                                                    href={bug.jiraLink}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 rounded-lg transition-all duration-200 group"
-                                                >
-                                                    <span className="font-mono text-sm font-medium text-blue-300 group-hover:text-blue-200">
-                                                        {bug.jiraKey}
-                                                    </span>
-                                                    <ExternalLink className="h-3 w-3 text-blue-400 group-hover:text-blue-300" />
-                                                </a>
-                                            ) : (
-                                                <div className="inline-flex items-center px-3 py-2 bg-gray-600/20 border border-gray-500/40 rounded-lg">
-                                                    <span className="font-mono text-sm font-medium text-gray-300">
-                                                        {bug.jiraKey}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
+                                <div className="relative p-5 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
+                                    <div className="flex items-start justify-between mb-3">
+                                        <h4 className="font-semibold text-white text-lg">{bug.bugTitle}</h4>
+                                        <Badge variant="outline" className="font-mono bg-blue-500/20 text-blue-300 border-blue-400/30">
+                                            {bug.jiraKey}
+                                        </Badge>
                                     </div>
                                     <div className="flex items-center gap-4 text-xs text-gray-500">
                                         <span>Created: {new Date(bug.createdAt).toLocaleDateString()}</span>
