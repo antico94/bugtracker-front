@@ -26,7 +26,7 @@ import {
     SkipForward,
     Undo2
 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { GlassButton } from "@/components/glass/glass-button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -270,13 +270,14 @@ export default function TaskDetailPage() {
                     <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
                     <div className="text-red-400 mb-4">{errorMessage}</div>
                     <div className="space-y-2">
-                        <Button
+                        <GlassButton
                             variant="outline"
                             onClick={() => router.push('/tasks')}
-                            className="bg-white/10 border-white/20 text-white hover:bg-white/20 w-full"
+                            className="w-full"
+                            glowColor="blue"
                         >
                             Back to Tasks
-                        </Button>
+                        </GlassButton>
                         {taskId && (
                             <p className="text-xs text-gray-500">Task ID: {taskId}</p>
                         )}
@@ -302,15 +303,15 @@ export default function TaskDetailPage() {
                 <header className="sticky top-0 z-50 bg-white/5 backdrop-blur-xl border-b border-white/10 shadow-2xl">
                     <div className="container flex h-16 items-center justify-between py-4">
                         <div className="flex items-center gap-4">
-                            <Button
+                            <GlassButton
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => router.push('/tasks')}
-                                className="text-gray-300 hover:text-white hover:bg-white/10"
+                                glowColor="blue"
                             >
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Back to Tasks
-                            </Button>
+                            </GlassButton>
                             <Separator orientation="vertical" className="h-6 bg-white/20" />
                             <div>
                                 <h2 className="text-lg font-bold text-white">{task.taskTitle}</h2>
@@ -323,13 +324,13 @@ export default function TaskDetailPage() {
                                 <span className="ml-1">{task.status}</span>
                             </Badge>
                             {isTaskComplete && (
-                                <Button
+                                <GlassButton
                                     onClick={handleMoveToNextTask}
-                                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
+                                    glowColor="purple"
                                 >
                                     <SkipForward className="mr-2 h-4 w-4" />
                                     Move to Next Task
-                                </Button>
+                                </GlassButton>
                             )}
                         </div>
                     </div>
@@ -548,24 +549,28 @@ export default function TaskDetailPage() {
 
                                                 {/* Decision Buttons */}
                                                 <div className="grid grid-cols-2 gap-4">
-                                                    <Button
+                                                    <GlassButton
                                                         onClick={() => handleDecision("Yes")}
                                                         disabled={makeDecisionLoading}
-                                                        className="h-auto p-6 bg-green-600/20 hover:bg-green-600/30 border border-green-500/40 text-green-200 hover:text-green-100 transition-all duration-200 flex flex-col items-center gap-2"
+                                                        loading={makeDecisionLoading}
+                                                        glowColor="green"
+                                                        className="h-auto p-6 flex-col gap-2"
                                                     >
                                                         <CheckCircle2 className="h-8 w-8" />
                                                         <span className="font-semibold">Yes</span>
                                                         <span className="text-xs opacity-75">Confirm and proceed</span>
-                                                    </Button>
-                                                    <Button
+                                                    </GlassButton>
+                                                    <GlassButton
                                                         onClick={() => handleDecision("No")}
                                                         disabled={makeDecisionLoading}
-                                                        className="h-auto p-6 bg-red-600/20 hover:bg-red-600/30 border border-red-500/40 text-red-200 hover:text-red-100 transition-all duration-200 flex flex-col items-center gap-2"
+                                                        loading={makeDecisionLoading}
+                                                        glowColor="red"
+                                                        className="h-auto p-6 flex-col gap-2"
                                                     >
                                                         <XCircle className="h-8 w-8" />
                                                         <span className="font-semibold">No</span>
                                                         <span className="text-xs opacity-75">Reject and continue</span>
-                                                    </Button>
+                                                    </GlassButton>
                                                 </div>
 
                                                 {/* Notes for Decision */}
@@ -606,17 +611,19 @@ export default function TaskDetailPage() {
                                                     />
                                                 </div>
 
-                                                <Button
+                                                <GlassButton
                                                     onClick={handleStepComplete}
                                                     disabled={completeStepLoading || ((relevantSteps.current.requiresNote || relevantSteps.current.isTerminal) && !stepNoteText.trim())}
-                                                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg h-12"
+                                                    loading={completeStepLoading}
+                                                    glowColor="emerald"
+                                                    className="w-full h-12"
                                                 >
                                                     <CheckCircle2 className="mr-2 h-5 w-5" />
-                                                    {completeStepLoading ? "Completing..." : "Mark Step as Complete"}
+                                                    Mark Step as Complete
                                                     {relevantSteps.current.isTerminal && (
                                                         <span className="ml-2 text-xs">(Final Step)</span>
                                                     )}
-                                                </Button>
+                                                </GlassButton>
 
                                                 {relevantSteps.current.isTerminal && (
                                                     <div className="p-3 bg-orange-500/10 border border-orange-400/30 rounded-lg">
@@ -649,13 +656,13 @@ export default function TaskDetailPage() {
                                                     This task has been successfully completed. All steps have been finished.
                                                 </p>
                                             </div>
-                                            <Button
+                                            <GlassButton
                                                 onClick={handleMoveToNextTask}
-                                                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
+                                                glowColor="purple"
                                             >
                                                 <SkipForward className="mr-2 h-4 w-4" />
                                                 Move to Next Task
-                                            </Button>
+                                            </GlassButton>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -690,15 +697,16 @@ export default function TaskDetailPage() {
                                                 className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none"
                                                 rows={3}
                                             />
-                                            <Button
+                                            <GlassButton
                                                 onClick={handleAddNote}
                                                 disabled={!generalNoteText.trim() || addNoteLoading}
+                                                loading={addNoteLoading}
                                                 size="sm"
-                                                className="bg-purple-600 hover:bg-purple-700"
+                                                glowColor="purple"
                                             >
                                                 <Plus className="mr-2 h-4 w-4" />
-                                                {addNoteLoading ? "Adding..." : "Add Note"}
-                                            </Button>
+                                                Add Note
+                                            </GlassButton>
                                         </div>
 
                                         {/* Notes List */}
