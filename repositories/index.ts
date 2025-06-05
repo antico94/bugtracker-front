@@ -12,6 +12,7 @@ import { ExternalModuleRepository } from "@/repositories/external-module-reposit
 import { CoreBugRepository } from "@/repositories/core-bug-repository"
 import { CustomTaskRepository } from "@/repositories/custom-task-repository"
 import { WeeklyCoreBugsRepository } from "@/repositories/weekly-core-bugs-repository"
+import { WorkflowRepository } from "@/repositories/workflow-repository"
 
 // Repository Registry
 export class RepositoryRegistry {
@@ -25,6 +26,7 @@ export class RepositoryRegistry {
   public readonly coreBugs: CoreBugRepository
   public readonly customTasks: CustomTaskRepository
   public readonly weeklyCoreBugs: WeeklyCoreBugsRepository
+  public readonly workflow: WorkflowRepository
 
   private constructor(baseUrl?: string) {
     const apiUrl = baseUrl || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5285/api"
@@ -37,6 +39,7 @@ export class RepositoryRegistry {
     this.coreBugs = new CoreBugRepository(apiUrl)
     this.customTasks = new CustomTaskRepository(apiUrl)
     this.weeklyCoreBugs = new WeeklyCoreBugsRepository(apiUrl)
+    this.workflow = new WorkflowRepository(apiUrl)
   }
 
   public static getInstance(baseUrl?: string): RepositoryRegistry {
