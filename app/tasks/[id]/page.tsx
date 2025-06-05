@@ -72,30 +72,43 @@ export default function TaskDetailPage() {
         // Get the step indicated by currentStepId from backend
         let currentStep = task.taskSteps.find(step => step.taskStepId === task.currentStepId)
         
+        // If no currentStepId from backend or step not found, find first incomplete step
+        if (!currentStep) {
+            console.warn("No current step found from backend currentStepId, finding first incomplete step...")
+            const sortedSteps = [...task.taskSteps].sort((a, b) => a.order - b.order)
+            currentStep = sortedSteps.find(step => step.status !== "Done")
+            if (currentStep) {
+                console.log(`Found first incomplete step: ${currentStep.action} (order: ${currentStep.order})`)
+            }
+        }
+        
         // Defensive check: if the "current" step is already completed, find the actual next step
         if (currentStep && currentStep.status === "Done") {
             console.warn("Backend currentStepId points to completed step. Finding actual next step...")
             
-            // If it's a decision step that's completed, find the next step based on the decision
-            if (currentStep.isDecision && currentStep.decisionAnswer) {
-                const nextStepId = currentStep.decisionAnswer === "Yes" 
-                    ? currentStep.nextStepIfYes 
-                    : currentStep.nextStepIfNo
-                
-                if (nextStepId) {
-                    const nextStep = task.taskSteps.find(s => s.taskStepId === nextStepId)
-                    if (nextStep && nextStep.status !== "Done") {
-                        currentStep = nextStep
-                    }
-                }
+            // Always look for the next incomplete step by order first (most reliable approach)
+            const sortedSteps = [...task.taskSteps].sort((a, b) => a.order - b.order)
+            const nextIncompleteStep = sortedSteps.find(step => 
+                step.order > currentStep!.order && step.status !== "Done"
+            )
+            
+            if (nextIncompleteStep) {
+                console.log(`Found next incomplete step: ${nextIncompleteStep.action} (order: ${nextIncompleteStep.order})`)
+                currentStep = nextIncompleteStep
             } else {
-                // For non-decision completed steps, find the next incomplete step by order
-                const sortedSteps = [...task.taskSteps].sort((a, b) => a.order - b.order)
-                const nextIncompleteStep = sortedSteps.find(step => 
-                    step.order > currentStep!.order && step.status !== "Done"
-                )
-                if (nextIncompleteStep) {
-                    currentStep = nextIncompleteStep
+                // If no incomplete step found by order, try decision-based logic as fallback
+                if (currentStep.isDecision && currentStep.decisionAnswer) {
+                    const nextStepId = currentStep.decisionAnswer === "Yes" 
+                        ? currentStep.nextStepIfYes 
+                        : currentStep.nextStepIfNo
+                    
+                    if (nextStepId) {
+                        const nextStep = task.taskSteps.find(s => s.taskStepId === nextStepId)
+                        if (nextStep && nextStep.status !== "Done") {
+                            console.log(`Found next step via decision logic: ${nextStep.action}`)
+                            currentStep = nextStep
+                        }
+                    }
                 }
             }
         }
