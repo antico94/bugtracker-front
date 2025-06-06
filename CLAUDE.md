@@ -140,7 +140,126 @@ This section contains critical instructions that must be followed in ALL session
 #### Active Projects
 <!-- Current projects with detailed step-by-step plans -->
 
-*No active projects currently*
+## Project: Task Workflow System Redesign
+**Status**: planning
+**Started**: 2025-06-06
+**Last Updated**: 2025-06-06
+
+### Objective
+Move all workflow logic from frontend to backend, implementing a robust rule engine for step progression and validation
+
+### Research Phase
+- [x] Analyzed current frontend implementation (app/tasks/[id]/page.tsx lines 65-134)
+- [x] Examined backend WorkflowEngineService.cs and TaskGenerationService.cs
+- [x] Identified split business logic between frontend/backend
+- [x] Documented pain points: duplicated logic, inconsistent state, hardcoded rules
+- [x] Analyzed the specific bug: Major severity incorrectly routed to "Function Not Utilized"
+
+### Critical Pain Points Identified
+1. **Split Business Logic**: Frontend has step calculation (lines 65-134) + note requirements (lines 139-202)
+2. **Inconsistent State**: Frontend tries to "fix" backend currentStepId with fallback logic
+3. **Hardcoded Workflows**: TaskGenerationService has C# hardcoded workflow instead of declarative rules
+4. **No Audit Trail**: Impossible to debug why Major severity bug went to wrong step
+5. **Tightly Coupled Frontend**: Frontend knows about specific step types (clone bug, preconditions)
+
+### Implementation Plan
+
+1. **Backend Workflow Engine Foundation**
+   - Status: pending
+   - Files: Services/WorkflowEngine/, Models/Workflow/
+   - Create declarative workflow definition system
+   - Implement state machine pattern with formal transitions
+   - Dependencies: none
+
+2. **Rule Engine Implementation**
+   - Status: pending
+   - Files: Services/RuleEngine/
+   - Build expression-based rule evaluation system
+   - Support conditional logic (severity checks, version checks)
+   - Dependencies: step 1
+
+3. **Workflow Definition Migration**
+   - Status: pending
+   - Files: Data/WorkflowDefinitions/
+   - Convert hardcoded TaskGenerationService workflows to JSON/YAML definitions
+   - Create bug assessment workflow with proper rule conditions
+   - Dependencies: steps 1-2
+
+4. **New Workflow API Endpoints**
+   - Status: pending
+   - Files: Controllers/WorkflowController.cs
+   - GET /api/workflow/{taskId}/state (complete workflow state)
+   - POST /api/workflow/{taskId}/execute-action (single action endpoint)
+   - GET /api/workflow/{taskId}/audit (decision trail)
+   - Dependencies: steps 1-3
+
+5. **Database Schema Updates**
+   - Status: pending
+   - Files: Migrations/, Models/
+   - Add WorkflowExecution, WorkflowAuditLog tables
+   - Store complete decision trail for debugging
+   - Dependencies: steps 1-4
+
+6. **Frontend Simplification**
+   - Status: pending
+   - Files: app/tasks/[id]/page.tsx, hooks/use-workflow.ts
+   - Remove all business logic (lines 65-134, 139-202, 208-215, 361-376)
+   - Replace with single useWorkflowState(taskId) hook
+   - Frontend becomes pure presentation layer
+   - Dependencies: steps 1-5
+
+7. **Migration Strategy**
+   - Status: pending
+   - Files: Services/WorkflowMigrationService.cs
+   - Migrate existing task steps to new workflow system
+   - Preserve existing task state during transition
+   - Dependencies: steps 1-6
+
+8. **Comprehensive Testing**
+   - Status: pending
+   - Files: Tests/Workflow/
+   - Unit tests for rule engine and state machine
+   - Integration tests for complete workflows
+   - Test the Major severity bug scenario specifically
+   - Dependencies: steps 1-7
+
+### Current Step
+**Step 1**: Backend Workflow Engine Foundation
+- **What's Done**: Research completed, pain points documented, architecture designed
+- **Next Actions**: Create WorkflowDefinition, WorkflowState, WorkflowEngine services
+- **Blockers**: None
+
+### Notes & Decisions
+- **Decision**: Use declarative workflow definitions (JSON/YAML) instead of hardcoded C#
+- **Decision**: Implement complete audit trail for debugging workflow issues
+- **Decision**: Frontend becomes pure presentation layer - no business logic
+- **Decision**: Single API endpoint for workflow state to eliminate frontend complexity
+- **Architecture**: State machine pattern with rule engine for condition evaluation
+- **Key Insight**: The Major severity bug issue stems from inconsistent state management between frontend/backend
+
+### Architecture Design
+```
+WorkflowEngine (Backend)
+├── WorkflowDefinition (declarative rules as data)
+├── WorkflowState (single source of truth for current state)
+├── WorkflowActions (available actions based on current state)
+├── WorkflowValidation (all business rules centralized)
+├── WorkflowTransitions (formal state changes with conditions)
+├── WorkflowAudit (complete decision trail for debugging)
+└── RuleEngine (expression evaluation for conditions)
+
+Frontend (Simplified)
+└── useWorkflowState(taskId) -> renders what backend provides
+```
+
+### Testing Plan
+- Unit tests for each workflow rule and transition
+- Integration tests for complete bug assessment workflow
+- Specific test case for Major severity -> Keep as New transition
+- Performance tests for rule engine evaluation
+- Migration tests to ensure existing tasks work correctly
+
+---
 
 #### Project Plan Template
 ```
