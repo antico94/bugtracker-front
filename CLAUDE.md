@@ -96,3 +96,152 @@ When working with this codebase:
 - Follow the established glass morphism design patterns
 - Ensure proper TypeScript typing for all new components
 - Use the existing error handling patterns for consistency
+
+## Claude Long-Term Memory System
+
+### Persistent Instructions
+This section contains critical instructions that must be followed in ALL sessions, regardless of context:
+
+#### Code Quality Standards
+- NEVER create files unless absolutely necessary for achieving the goal
+- ALWAYS prefer editing existing files over creating new ones
+- NEVER proactively create documentation files (*.md) or README files unless explicitly requested
+- Follow the established repository pattern for all new API endpoints
+- Maintain TypeScript type safety throughout all implementations
+
+#### Strict Attribution Policy
+- NEVER include any mentions of "Generated with Claude", "Generated with AI", "Co-Authored-By: Claude", or any AI attribution in code, comments, commit messages, or any project files
+- NEVER add AI-related signatures or attributions to any work
+- All code and commits must appear as natural human work without AI mentions
+
+#### Development Workflow
+- Always run `pnpm lint` after making code changes
+- Use TodoWrite tool for task planning and tracking on complex tasks
+- Mark todos as completed immediately after finishing each task
+- Batch multiple independent tool calls in single responses for optimal performance
+- **MANDATORY**: Create a commit after completing each task with a clear, descriptive commit message
+- Commit messages must describe what changed without any AI attribution or mentions
+
+#### Project Plan Management
+- For complex features/tasks, create a detailed project plan using the template
+- Update project status and current step after each work session
+- Always note what was completed and what's next in "Current Step" section
+- Archive completed projects to maintain implementation history
+- Use `./update-claude-memory.sh` commands for plan management
+
+#### UI/UX Consistency
+- Maintain glass morphism design system across all new components
+- Ensure dark theme compatibility (`defaultTheme="dark" enableSystem={false}`)
+- Follow mobile-responsive patterns established in existing components
+- Use existing Radix UI components and established patterns
+
+### Project Plans Management
+
+#### Active Projects
+<!-- Current projects with detailed step-by-step plans -->
+
+*No active projects currently*
+
+#### Project Plan Template
+```
+## Project: [PROJECT_NAME]
+**Status**: [planning|in_progress|testing|completed]
+**Started**: [DATE]
+**Last Updated**: [DATE]
+
+### Objective
+[Clear description of what we're building and why]
+
+### Research Phase
+- [ ] Research requirement 1
+- [ ] Research requirement 2
+- [x] Completed research item (with notes)
+
+### Implementation Plan
+1. **Step 1: [Description]**
+   - Status: [pending|in_progress|completed]
+   - Files: [list of files to modify/create]
+   - Notes: [any important context]
+
+2. **Step 2: [Description]**
+   - Status: [pending|in_progress|completed]  
+   - Files: [list of files to modify/create]
+   - Dependencies: [depends on step 1]
+   - Notes: [any important context]
+
+### Current Step
+**Step [N]**: [Current step description]
+- **What's Done**: [completed parts]
+- **Next Actions**: [immediate next tasks]
+- **Blockers**: [any issues preventing progress]
+
+### Notes & Decisions
+- [Key decisions made during implementation]
+- [Alternative approaches considered]
+- [Performance considerations]
+
+### Testing Plan
+- [ ] Test case 1
+- [ ] Test case 2
+- [ ] Integration testing
+
+---
+```
+
+#### Completed Projects Archive
+<!-- Completed projects for reference -->
+## Project: Test Project
+**Status**: completed
+**Started**: 2025-06-06
+**Completed**: 2025-06-06
+
+### Objective
+Test the project plan management system functionality
+
+### Research Phase
+*Research items will be added as needed*
+
+### Implementation Plan
+*Implementation steps will be added after research*
+
+### Current Step
+**Step 1**: Research and planning phase
+- **What's Done**: Project initialized
+- **Next Actions**: Define research requirements
+- **Blockers**: None
+
+### Notes & Decisions
+*Notes will be added during implementation*
+
+### Testing Plan
+*Testing plan will be defined during implementation*
+
+
+### Completion Summary
+- **Completed**: 2025-06-06
+- **Notes**: Successfully tested project plan creation, status updates, and archival system
+---
+
+### Incomplete Tasks Tracking
+
+#### Active Session Tasks
+<!-- This section will be updated during active sessions -->
+*No incomplete tasks from previous sessions*
+
+#### Task Context Preservation
+<!-- Context from interrupted tasks will be preserved here -->
+*No preserved context from previous sessions*
+
+### Session Metadata
+
+#### Last Session Information
+- **Date**: 2025-01-06
+- **Branch**: main
+- **Status**: Clean working directory
+- **Key Context**: Long-term memory system with strict attribution policy implemented
+
+#### Critical Project State
+- Next.js 15 application with TypeScript
+- Backend API: `http://localhost:5285/api`
+- Package Manager: pnpm
+- Current Architecture: Repository pattern with React Query integration
