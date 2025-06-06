@@ -1,6 +1,6 @@
-﻿"use client"
+"use client"
 
-import React, { useState, useMemo } from "react"
+import React, { useState } from "react"
 import { useParams } from "next/navigation"
 import {
     ArrowLeft,
@@ -13,18 +13,13 @@ import {
     Target,
     GitBranch,
     MapPin,
-    Lightbulb,
+    Info,
+    Layers,
     CheckSquare,
     XCircle,
-    Info,
-    User,
-    Calendar,
-    Layers,
-    ChevronRight,
-    ChevronDown,
-    Plus,
     SkipForward,
-    Undo2
+    Undo2,
+    Lightbulb
 } from "lucide-react"
 import { GlassButton } from "@/components/glass/glass-button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -33,294 +28,70 @@ import { Progress } from "@/components/ui/progress"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { useCustomTask, useCustomTasks } from "@/hooks/use-custom-tasks"
+import { useCustomTask } from "@/hooks/use-custom-tasks"
+import { useWorkflowState } from "@/hooks/use-workflow-state"
 import { Status } from "@/types"
 import { useRouter } from "next/navigation"
-import { toast } from "@/hooks/use-toast"
 
-export default function TaskDetailPage() {
+export default function TaskDetailPageSimplified() {
     const router = useRouter()
     const params = useParams()
     const taskId = params.id as string
 
     const [stepNoteText, setStepNoteText] = useState("")
-    const [generalNoteText, setGeneralNoteText] = useState("")
-    const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(["current-step"]))
 
-    // Fetch task data from API
-    const { data: task, loading, error, refetch } = useCustomTask(taskId)
+    // Get basic task data (for display info only)
+    const { data: task, loading: taskLoading, error: taskError } = useCustomTask(taskId)
 
-    // Get mutation methods
+    // Get workflow state from backend (single source of truth)
     const {
+        workflowState,
+        isLoading: workflowLoading,
+        isComplete,
+        hasError: workflowError,
+        errorMessage,
+        currentStep,
+        availableActions,
+        completedSteps,
+        progressPercentage,
+        totalSteps,
+        completedStepsCount,
+        currentStepRequiresNote,
+        isDecisionStep,
+        isTerminalStep,
+        decisionActions,
+        completeAction,
         completeStep,
         makeDecision,
-        addNote,
-        completeStepLoading,
-        makeDecisionLoading,
-        addNoteLoading
-    } = useCustomTasks()
-
-    // Get relevant steps (completed + current + immediate next possibilities)
-    const relevantSteps = useMemo(() => {
-        if (!task?.taskSteps) return { completed: [], current: null, next: [] }
-
-        const completedSteps = task.taskSteps
-            .filter(step => step.status === "Done")
-            .sort((a, b) => a.order - b.order)
-
-        // Get the step indicated by currentStepId from backend
-        let currentStep = task.taskSteps.find(step => step.taskStepId === task.currentStepId)
-        
-        // If no currentStepId from backend or step not found, find first incomplete step
-        if (!currentStep) {
-            console.warn("No current step found from backend currentStepId, finding first incomplete step...")
-            const sortedSteps = [...task.taskSteps].sort((a, b) => a.order - b.order)
-            currentStep = sortedSteps.find(step => step.status !== "Done")
-            if (currentStep) {
-                console.log(`Found first incomplete step: ${currentStep.action} (order: ${currentStep.order})`)
-            }
-        }
-        
-        // Defensive check: if the "current" step is already completed, find the actual next step
-        if (currentStep && currentStep.status === "Done") {
-            console.warn("Backend currentStepId points to completed step. Finding actual next step...")
-            
-            // Always look for the next incomplete step by order first (most reliable approach)
-            const sortedSteps = [...task.taskSteps].sort((a, b) => a.order - b.order)
-            const nextIncompleteStep = sortedSteps.find(step => 
-                step.order > currentStep!.order && step.status !== "Done"
-            )
-            
-            if (nextIncompleteStep) {
-                console.log(`Found next incomplete step: ${nextIncompleteStep.action} (order: ${nextIncompleteStep.order})`)
-                currentStep = nextIncompleteStep
-            } else {
-                // If no incomplete step found by order, try decision-based logic as fallback
-                if (currentStep.isDecision && currentStep.decisionAnswer) {
-                    const nextStepId = currentStep.decisionAnswer === "Yes" 
-                        ? currentStep.nextStepIfYes 
-                        : currentStep.nextStepIfNo
-                    
-                    if (nextStepId) {
-                        const nextStep = task.taskSteps.find(s => s.taskStepId === nextStepId)
-                        if (nextStep && nextStep.status !== "Done") {
-                            console.log(`Found next step via decision logic: ${nextStep.action}`)
-                            currentStep = nextStep
-                        }
-                    }
-                }
-            }
-        }
-
-        let nextSteps: Array<{ step: any, condition: string }> = []
-        if (currentStep?.isDecision && currentStep.status !== "Done") {
-            // For decision steps, show both possible next steps
-            if (currentStep.nextStepIfYes) {
-                const yesStep = task.taskSteps.find(s => s.taskStepId === currentStep.nextStepIfYes)
-                if (yesStep) nextSteps.push({ step: yesStep, condition: "Yes" })
-            }
-            if (currentStep.nextStepIfNo) {
-                const noStep = task.taskSteps.find(s => s.taskStepId === currentStep.nextStepIfNo)
-                if (noStep) nextSteps.push({ step: noStep, condition: "No" })
-            }
-        }
-
-        return {
-            completed: completedSteps,
-            current: currentStep,
-            next: nextSteps
-        }
-    }, [task?.taskSteps, task?.currentStepId])
-
-    // Calculate progress based on relevant steps
-    const progressPercentage = task ? (task.completedStepsCount / task.totalStepsCount) * 100 : 0
+        isExecutingAction
+    } = useWorkflowState(taskId)
 
     const handleStepComplete = async () => {
-        if (!relevantSteps.current || !task) return
+        if (!currentStep) return
 
-        // Note Logic: Only require notes if explicitly marked as requiresNote: true
-        // DO NOT require notes for terminal steps unless specifically marked
-        // DO NOT require notes for "Clone bug in Jira" or "Check Preconditions" steps
-        const stepAction = relevantSteps.current.action?.toLowerCase() || ""
-        const isCloneBugStep = stepAction.includes("clone") && stepAction.includes("jira")
-        const isPreconditionsStep = stepAction.includes("precondition")
-        
-        // Override requiresNote for specific steps that should never require notes
-        const shouldNeverRequireNote = isCloneBugStep || isPreconditionsStep
-        const noteRequired = relevantSteps.current.requiresNote && !shouldNeverRequireNote
-            
-        if (noteRequired && !stepNoteText.trim()) {
-            toast({
-                title: "Note Required",
-                description: "This step requires a note before completion.",
-                variant: "destructive"
-            })
-            return
+        // Check if note is required
+        if (currentStepRequiresNote && !stepNoteText.trim()) {
+            return // Let validation handle this in the hook
         }
 
-        try {
-            await completeStep({
-                id: task.taskId,
-                stepData: {
-                    taskId: task.taskId,
-                    taskStepId: relevantSteps.current.taskStepId,
-                    notes: stepNoteText.trim() || undefined
-                }
-            })
-
-            setStepNoteText("")
-            await refetch() // Refresh task data
-
-            toast({
-                title: "Step Completed",
-                description: relevantSteps.current.isTerminal ? "Task completed!" : "The step has been marked as complete.",
-            })
-        } catch (error) {
-            console.error("Failed to complete step:", error)
-            
-            // Extract specific error message from API response
-            let errorMessage = "Failed to complete step. Please try again."
-            if (error instanceof Error) {
-                if (error.message.includes("HTTP 400")) {
-                    // Extract the detailed message after "HTTP 400: "
-                    const messageMatch = error.message.match(/HTTP 400: (.+)/)
-                    errorMessage = messageMatch ? messageMatch[1] : "Invalid request. Please check your input and try again."
-                } else if (error.message.includes("HTTP")) {
-                    errorMessage = error.message
-                } else {
-                    errorMessage = error.message
-                }
-            }
-            
-            toast({
-                title: "Error",
-                description: errorMessage,
-                variant: "destructive"
-            })
-        }
+        await completeStep(stepNoteText.trim() || undefined)
+        setStepNoteText("")
     }
 
     const handleDecision = async (decision: "Yes" | "No") => {
-        if (!relevantSteps.current || !task) return
+        if (!currentStep) return
 
-        // Check if note is required for "No" decisions that lead to terminal steps
-        if (decision === "No" && willLeadToTerminal(relevantSteps.current, decision) && !stepNoteText.trim()) {
-            toast({
-                title: "Note Required",
-                description: "Please explain why this step cannot be completed.",
-                variant: "destructive"
-            })
-            return
+        // Check if note is required for "No" decisions leading to terminal steps
+        if (decision === "No" && !stepNoteText.trim()) {
+            // Let the backend validate this - it has the workflow logic
         }
 
-        try {
-            await makeDecision({
-                id: task.taskId,
-                decisionData: {
-                    taskId: task.taskId,
-                    taskStepId: relevantSteps.current.taskStepId,
-                    decisionAnswer: decision,
-                    notes: stepNoteText.trim() || undefined
-                }
-            })
-
-            setStepNoteText("")
-            await refetch() // Refresh task data
-
-            toast({
-                title: "Decision Recorded",
-                description: `Decision "${decision}" has been recorded. Moving to next step.`,
-            })
-        } catch (error) {
-            console.error("Failed to record decision:", error)
-            
-            // Extract specific error message from API response
-            let errorMessage = "Failed to record decision. Please try again."
-            if (error instanceof Error) {
-                // Check if it's a known error message pattern
-                if (error.message.includes("Decision has already been made")) {
-                    errorMessage = "A decision has already been made for this step. Please refresh the page to see the current state."
-                } else if (error.message.includes("HTTP 400")) {
-                    // Extract the detailed message after "HTTP 400: "
-                    const messageMatch = error.message.match(/HTTP 400: (.+)/)
-                    errorMessage = messageMatch ? messageMatch[1] : "Invalid request. Please check your input and try again."
-                } else if (error.message.includes("HTTP")) {
-                    errorMessage = error.message
-                } else {
-                    errorMessage = error.message
-                }
-            }
-            
-            toast({
-                title: "Error",
-                description: errorMessage,
-                variant: "destructive"
-            })
-        }
-    }
-
-    const handleAddNote = async () => {
-        if (!task || !generalNoteText.trim()) return
-
-        try {
-            await addNote({
-                id: task.taskId,
-                note: {
-                    taskId: task.taskId,
-                    content: generalNoteText.trim(),
-                    createdBy: "Current User" // In real app, get from auth context
-                }
-            })
-
-            setGeneralNoteText("")
-            await refetch() // Refresh task data
-
-            toast({
-                title: "Note Added",
-                description: "Your note has been added to the task."
-            })
-        } catch (error) {
-            console.error("Failed to add note:", error)
-            
-            // Extract specific error message from API response
-            let errorMessage = "Failed to add note. Please try again."
-            if (error instanceof Error) {
-                if (error.message.includes("HTTP 400")) {
-                    // Extract the detailed message after "HTTP 400: "
-                    const messageMatch = error.message.match(/HTTP 400: (.+)/)
-                    errorMessage = messageMatch ? messageMatch[1] : "Invalid request. Please check your input and try again."
-                } else if (error.message.includes("HTTP")) {
-                    errorMessage = error.message
-                } else {
-                    errorMessage = error.message
-                }
-            }
-            
-            toast({
-                title: "Error",
-                description: errorMessage,
-                variant: "destructive"
-            })
-        }
+        await makeDecision(decision, stepNoteText.trim() || undefined)
+        setStepNoteText("")
     }
 
     const handleMoveToNextTask = () => {
         router.push('/tasks')
-        toast({
-            title: "Moving to Next Task",
-            description: "Looking for the next available task...",
-        })
-    }
-
-    const toggleSection = (section: string) => {
-        const newExpanded = new Set(expandedSections)
-        if (newExpanded.has(section)) {
-            newExpanded.delete(section)
-        } else {
-            newExpanded.add(section)
-        }
-        setExpandedSections(newExpanded)
     }
 
     const getStatusIcon = (status: Status) => {
@@ -349,33 +120,8 @@ export default function TaskDetailPage() {
         }
     }
 
-    // Helper function to determine if a terminal step was reached via "No" decision
-    const isNoDecisionTerminal = (step: any) => {
-        // Logic to determine if this terminal step requires a note
-        // For now, we'll make terminal steps NOT require notes by default
-        // Only specific workflows that end with "No" should require notes
-        return false // This can be enhanced based on step description or workflow type
-    }
-
-    // Helper function to check if a "No" decision will lead to a terminal step
-    const willLeadToTerminal = (currentStep: any, decision: "Yes" | "No") => {
-        if (!currentStep.isDecision) return false
-        
-        const nextStepId = decision === "Yes" ? currentStep.nextStepIfYes : currentStep.nextStepIfNo
-        if (!nextStepId || !task?.taskSteps) return false
-        
-        const nextStep = task.taskSteps.find(s => s.taskStepId === nextStepId)
-        return nextStep?.isTerminal || false
-    }
-
-    // Helper function to determine if notes should be required for current step
-    const shouldRequireNotes = (step: any, decision?: "Yes" | "No") => {
-        if (step.requiresNote) return true
-        if (decision === "No" && willLeadToTerminal(step, decision)) return true
-        return false
-    }
-
-    if (loading) {
+    // Loading state
+    if (taskLoading || workflowLoading) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex items-center justify-center">
                 <div className="text-center">
@@ -386,44 +132,27 @@ export default function TaskDetailPage() {
         )
     }
 
-    if (error || !task) {
-        let errorMessage = "Task not found"
-
-        if (error) {
-            // Handle specific API errors
-            if (error.includes("400")) {
-                errorMessage = "Invalid task ID. Please check the task URL or select a task from the task list."
-            } else if (error.includes("404")) {
-                errorMessage = "Task not found. It may have been deleted or you don't have access to it."
-            } else {
-                errorMessage = `Error loading task: ${error}`
-            }
-        }
-
+    // Error state
+    if (taskError || workflowError || !task) {
+        const displayError = taskError || errorMessage || "Task not found"
+        
         return (
             <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 flex items-center justify-center">
                 <div className="text-center max-w-md">
                     <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
-                    <div className="text-red-400 mb-4">{errorMessage}</div>
-                    <div className="space-y-2">
-                        <GlassButton
-                            variant="outline"
-                            onClick={() => router.push('/tasks')}
-                            className="w-full"
-                            glowColor="blue"
-                        >
-                            Back to Tasks
-                        </GlassButton>
-                        {taskId && (
-                            <p className="text-xs text-gray-500">Task ID: {taskId}</p>
-                        )}
-                    </div>
+                    <div className="text-red-400 mb-4">{displayError}</div>
+                    <GlassButton
+                        variant="outline"
+                        onClick={() => router.push('/tasks')}
+                        className="w-full"
+                        glowColor="blue"
+                    >
+                        Back to Tasks
+                    </GlassButton>
                 </div>
             </div>
         )
     }
-
-    const isTaskComplete = task.status === "Done"
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900/20 to-slate-900 relative overflow-hidden">
@@ -451,15 +180,15 @@ export default function TaskDetailPage() {
                             <Separator orientation="vertical" className="h-6 bg-white/20" />
                             <div>
                                 <h2 className="text-lg font-bold text-white">{task.taskTitle}</h2>
-                                <p className="text-sm text-gray-400">Task Progress: {task.completedStepsCount}/{task.totalStepsCount} steps</p>
+                                <p className="text-sm text-gray-400">Task Progress: {completedStepsCount}/{totalSteps} steps</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
                             <Badge className={`${getStatusColor(task.status)} text-sm`}>
                                 {getStatusIcon(task.status)}
-                                <span className="ml-1">{task.status}</span>
+                                <span className="ml-1">{workflowState?.status || task.status}</span>
                             </Badge>
-                            {isTaskComplete && (
+                            {isComplete && (
                                 <GlassButton
                                     onClick={handleMoveToNextTask}
                                     glowColor="purple"
@@ -528,10 +257,21 @@ export default function TaskDetailPage() {
                                             </div>
                                         </div>
                                     )}
+
+                                    {/* Workflow Info */}
+                                    {workflowState && (
+                                        <div className="space-y-2">
+                                            <Label className="text-sm text-gray-300">Workflow</Label>
+                                            <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                                                <p className="text-sm text-gray-200">{workflowState.workflowName}</p>
+                                                <p className="text-xs text-gray-400">Status: {workflowState.status}</p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
 
-                            {/* Relevant Progress Path */}
+                            {/* Progress Path */}
                             <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
                                 <CardHeader>
                                     <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
@@ -539,7 +279,7 @@ export default function TaskDetailPage() {
                                         Progress Path
                                     </CardTitle>
                                     <CardDescription className="text-gray-300">
-                                        Showing completed steps and current step only
+                                        Workflow-driven progress tracking
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
@@ -547,7 +287,7 @@ export default function TaskDetailPage() {
                                         <div className="flex items-center justify-between text-sm">
                                             <span className="text-gray-300">Overall Progress</span>
                                             <span className="text-gray-300 font-medium">
-                                                {task.completedStepsCount}/{task.totalStepsCount} steps
+                                                {completedStepsCount}/{totalSteps} steps
                                             </span>
                                         </div>
                                         <Progress value={progressPercentage} className="h-3" />
@@ -557,26 +297,18 @@ export default function TaskDetailPage() {
                                     </div>
 
                                     {/* Completed Steps */}
-                                    {relevantSteps.completed.length > 0 && (
+                                    {completedSteps.length > 0 && (
                                         <div className="space-y-3">
                                             <Label className="text-sm text-gray-300">Completed Steps</Label>
-                                            {relevantSteps.completed.map((step) => (
+                                            {completedSteps.map((step) => (
                                                 <div
-                                                    key={step.taskStepId}
+                                                    key={step.stepId}
                                                     className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-400/20 rounded-lg"
                                                 >
                                                     <CheckCircle2 className="h-4 w-4 text-green-400 flex-shrink-0" />
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm text-gray-200 font-medium">{step.action}</p>
-                                                        <p className="text-xs text-gray-400">
-                                                            Completed: {step.completedAt ? new Date(step.completedAt).toLocaleString() : 'Unknown'}
-                                                        </p>
-                                                        {step.notes && (
-                                                            <p className="text-xs text-gray-300 mt-1 italic">"{step.notes}"</p>
-                                                        )}
-                                                        {step.decisionAnswer && (
-                                                            <p className="text-xs text-cyan-300 mt-1">Decision: {step.decisionAnswer}</p>
-                                                        )}
+                                                        <p className="text-sm text-gray-200 font-medium">{step.name}</p>
+                                                        <p className="text-xs text-gray-400">Step {step.order}</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -584,63 +316,25 @@ export default function TaskDetailPage() {
                                     )}
 
                                     {/* Current Step */}
-                                    {relevantSteps.current && (
+                                    {currentStep && (
                                         <div className="space-y-2">
                                             <Label className="text-sm text-gray-300">Current Step</Label>
                                             <div className="p-3 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <Play className="h-4 w-4 text-yellow-400" />
-                                                    <p className="text-sm text-white font-medium">{relevantSteps.current.action}</p>
-                                                    {relevantSteps.current.isDecision && (
+                                                    <p className="text-sm text-white font-medium">{currentStep.name}</p>
+                                                    {isDecisionStep && (
                                                         <Badge className="text-xs bg-cyan-500/20 text-cyan-300 border-cyan-400/30">
                                                             Decision
                                                         </Badge>
                                                     )}
-                                                    {relevantSteps.current.isTerminal && (
+                                                    {isTerminalStep && (
                                                         <Badge className="text-xs bg-orange-500/20 text-orange-300 border-orange-400/30">
                                                             Final
                                                         </Badge>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-gray-300">{relevantSteps.current.description}</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Next Steps Preview */}
-                                    {relevantSteps.next.length > 0 && (
-                                        <div className="space-y-2">
-                                            <Label className="text-sm text-gray-300">Possible Next Steps</Label>
-                                            <div className="space-y-2">
-                                                {relevantSteps.next.map(({ step, condition }) => (
-                                                    <div
-                                                        key={`${step.taskStepId}-${condition}`}
-                                                        className={`p-2 rounded-lg border ${
-                                                            condition === "Yes"
-                                                                ? "bg-green-500/10 border-green-400/30"
-                                                                : "bg-red-500/10 border-red-400/30"
-                                                        }`}
-                                                    >
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <Badge
-                                                                variant="outline"
-                                                                className={`text-xs ${
-                                                                    condition === "Yes"
-                                                                        ? "bg-green-500/20 text-green-300 border-green-400/40"
-                                                                        : "bg-red-500/20 text-red-300 border-red-400/40"
-                                                                }`}
-                                                            >
-                                                                If {condition}
-                                                            </Badge>
-                                                            {step.isTerminal && (
-                                                                <Badge className="text-xs bg-orange-500/20 text-orange-300 border-orange-400/40">
-                                                                    Final
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-xs text-gray-200">{step.action}</p>
-                                                    </div>
-                                                ))}
+                                                <p className="text-xs text-gray-300">{currentStep.description}</p>
                                             </div>
                                         </div>
                                     )}
@@ -650,8 +344,8 @@ export default function TaskDetailPage() {
 
                         {/* Right Column - Current Step Action */}
                         <div className="xl:col-span-3 space-y-8">
-                            {/* Current Step Action - Enhanced Design */}
-                            {relevantSteps.current && !isTaskComplete && relevantSteps.current.status !== "Done" && (
+                            {/* Current Step Action */}
+                            {currentStep && !isComplete && (
                                 <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl border-l-4 border-l-yellow-400">
                                     <CardHeader className="bg-gradient-to-r from-yellow-600/15 to-orange-600/15 backdrop-blur-sm border-b border-white/10">
                                         <div className="flex items-center justify-between">
@@ -660,20 +354,20 @@ export default function TaskDetailPage() {
                                                     <div className="p-2 bg-yellow-400/20 rounded-lg">
                                                         <MapPin className="h-6 w-6 text-yellow-400" />
                                                     </div>
-                                                    {relevantSteps.current.action}
+                                                    {currentStep.name}
                                                 </CardTitle>
                                                 <CardDescription className="text-gray-300 text-base">
-                                                    {relevantSteps.current.isDecision ? "🔀 Decision Point" : "⚡ Action Step"} • 
-                                                    Step {relevantSteps.current.order} of {task.totalStepsCount}
+                                                    {isDecisionStep ? "🔀 Decision Point" : "⚡ Action Step"} • 
+                                                    Step {currentStep.order} of {totalSteps}
                                                 </CardDescription>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                {relevantSteps.current.isDecision && (
+                                                {isDecisionStep && (
                                                     <Badge className="bg-cyan-500/20 text-cyan-300 border-cyan-400/30 px-3 py-1">
                                                         Decision Required
                                                     </Badge>
                                                 )}
-                                                {relevantSteps.current.isTerminal && (
+                                                {isTerminalStep && (
                                                     <Badge className="bg-orange-500/20 text-orange-300 border-orange-400/30 px-3 py-1">
                                                         Final Step
                                                     </Badge>
@@ -691,96 +385,67 @@ export default function TaskDetailPage() {
                                                 Step Description
                                             </Label>
                                             <div className="p-6 bg-gradient-to-br from-white/10 to-white/5 rounded-xl border border-white/15 shadow-lg">
-                                                <p className="text-gray-100 text-base leading-relaxed">{relevantSteps.current.description}</p>
+                                                <p className="text-gray-100 text-base leading-relaxed">{currentStep.description}</p>
                                             </div>
                                         </div>
 
                                         {/* Step Actions */}
-                                        {relevantSteps.current.isDecision ? (
+                                        {isDecisionStep ? (
                                             <div className="space-y-6">
                                                 <Label className="text-lg font-semibold text-white flex items-center gap-3">
                                                     <div className="p-1.5 bg-purple-400/20 rounded-lg">
                                                         <GitBranch className="h-5 w-5 text-purple-400" />
                                                     </div>
-                                                    {relevantSteps.current.decisionAnswer ? "Decision Made" : "Make Your Decision"}
+                                                    Make Your Decision
                                                 </Label>
 
-                                                {/* Show decision if already made */}
-                                                {relevantSteps.current.decisionAnswer ? (
-                                                    <div className="p-6 bg-gradient-to-br from-green-500/15 to-emerald-500/10 border border-green-400/30 rounded-xl shadow-lg">
-                                                        <div className="flex items-center gap-3 mb-4">
-                                                            <div className="p-2 bg-green-400/20 rounded-lg">
-                                                                <CheckCircle2 className="h-6 w-6 text-green-400" />
-                                                            </div>
-                                                            <span className="text-lg font-semibold text-green-300">Decision Already Made</span>
-                                                        </div>
-                                                        <div className="space-y-3">
-                                                            <p className="text-base text-gray-200">
-                                                                Decision: <span className="font-bold text-cyan-300 text-lg">{relevantSteps.current.decisionAnswer}</span>
-                                                            </p>
-                                                            {relevantSteps.current.notes && (
-                                                                <p className="text-sm text-gray-300 italic bg-white/5 p-3 rounded-lg">
-                                                                    Notes: "{relevantSteps.current.notes}"
-                                                                </p>
-                                                            )}
-                                                            {relevantSteps.current.completedAt && (
-                                                                <p className="text-xs text-gray-400">
-                                                                    Completed: {new Date(relevantSteps.current.completedAt).toLocaleString()}
-                                                                </p>
-                                                            )}
-                                                        </div>
+                                                <div className="space-y-6">
+                                                    {/* Decision Buttons */}
+                                                    <div className="grid grid-cols-2 gap-8 max-w-lg mx-auto">
+                                                        <GlassButton
+                                                            variant="workflow-decision"
+                                                            onClick={() => handleDecision("Yes")}
+                                                            disabled={isExecutingAction}
+                                                            loading={isExecutingAction}
+                                                            glowColor="green"
+                                                        >
+                                                            <CheckCircle2 className="h-8 w-8" />
+                                                            <span className="font-semibold text-lg">Yes</span>
+                                                            <span className="text-xs opacity-75">Confirm and proceed</span>
+                                                        </GlassButton>
+                                                        <GlassButton
+                                                            variant="workflow-decision"
+                                                            onClick={() => handleDecision("No")}
+                                                            disabled={isExecutingAction}
+                                                            loading={isExecutingAction}
+                                                            glowColor="red"
+                                                        >
+                                                            <XCircle className="h-8 w-8" />
+                                                            <span className="font-semibold text-lg">No</span>
+                                                            <span className="text-xs opacity-75">Reject and continue</span>
+                                                        </GlassButton>
                                                     </div>
-                                                ) : (
-                                                    <>
-                                                        {/* Decision Buttons */}
-                                                        <div className="space-y-6">
-                                                            <div className="grid grid-cols-2 gap-8 max-w-lg mx-auto">
-                                                            <GlassButton
-                                                                variant="workflow-decision"
-                                                                onClick={() => handleDecision("Yes")}
-                                                                disabled={makeDecisionLoading}
-                                                                loading={makeDecisionLoading}
-                                                                glowColor="green"
-                                                            >
-                                                                <CheckCircle2 className="h-8 w-8" />
-                                                                <span className="font-semibold text-lg">Yes</span>
-                                                                <span className="text-xs opacity-75">Confirm and proceed</span>
-                                                            </GlassButton>
-                                                            <GlassButton
-                                                                variant="workflow-decision"
-                                                                onClick={() => handleDecision("No")}
-                                                                disabled={makeDecisionLoading}
-                                                                loading={makeDecisionLoading}
-                                                                glowColor="red"
-                                                            >
-                                                                <XCircle className="h-8 w-8" />
-                                                                <span className="font-semibold text-lg">No</span>
-                                                                <span className="text-xs opacity-75">Reject and continue</span>
-                                                            </GlassButton>
-                                                        </div>
 
-                                                            {/* Notes for Decision */}
-                                                            <div className="space-y-4">
-                                                                <Label className="text-base font-medium text-white flex items-center gap-3">
-                                                                    <div className="p-1.5 bg-yellow-400/20 rounded-lg">
-                                                                        <MessageSquare className="h-4 w-4 text-yellow-400" />
-                                                                    </div>
-                                                                    Notes
-                                                                    <span className="text-yellow-400 text-sm font-normal">
-                                                                        (Required only if answering "No")
-                                                                    </span>
-                                                                </Label>
-                                                                <Textarea
-                                                                    value={stepNoteText}
-                                                                    onChange={(e) => setStepNoteText(e.target.value)}
-                                                                    placeholder="Add notes about your decision..."
-                                                                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none min-h-[100px] text-base"
-                                                                    rows={4}
-                                                                />
+                                                    {/* Notes for Decision */}
+                                                    <div className="space-y-4">
+                                                        <Label className="text-base font-medium text-white flex items-center gap-3">
+                                                            <div className="p-1.5 bg-yellow-400/20 rounded-lg">
+                                                                <MessageSquare className="h-4 w-4 text-yellow-400" />
                                                             </div>
-                                                        </div>
-                                                    </>
-                                                )}
+                                                            Notes
+                                                            {currentStepRequiresNote && (
+                                                                <span className="text-red-400 text-sm">*Required</span>
+                                                            )}
+                                                        </Label>
+                                                        <Textarea
+                                                            value={stepNoteText}
+                                                            onChange={(e) => setStepNoteText(e.target.value)}
+                                                            placeholder="Add notes about your decision..."
+                                                            className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none min-h-[100px] text-base"
+                                                            rows={4}
+                                                        />
+                                                    </div>
+                                                </div>
                                             </div>
                                         ) : (
                                             <div className="space-y-6">
@@ -798,18 +463,11 @@ export default function TaskDetailPage() {
                                                             <MessageSquare className="h-4 w-4 text-blue-400" />
                                                         </div>
                                                         Notes 
-                                                        {(() => {
-                                                            const stepAction = relevantSteps.current.action?.toLowerCase() || ""
-                                                            const isCloneBugStep = stepAction.includes("clone") && stepAction.includes("jira")
-                                                            const isPreconditionsStep = stepAction.includes("precondition")
-                                                            const shouldNeverRequireNote = isCloneBugStep || isPreconditionsStep
-                                                            const isRequired = relevantSteps.current.requiresNote && !shouldNeverRequireNote
-                                                            
-                                                            if (isRequired) {
-                                                                return <span className="text-red-400 text-sm">*Required</span>
-                                                            }
-                                                            return <span className="text-gray-400 text-sm font-normal">(Optional)</span>
-                                                        })()}
+                                                        {currentStepRequiresNote ? (
+                                                            <span className="text-red-400 text-sm">*Required</span>
+                                                        ) : (
+                                                            <span className="text-gray-400 text-sm font-normal">(Optional)</span>
+                                                        )}
                                                     </Label>
                                                     <Textarea
                                                         value={stepNoteText}
@@ -823,26 +481,19 @@ export default function TaskDetailPage() {
                                                 <GlassButton
                                                     variant="workflow-action"
                                                     onClick={handleStepComplete}
-                                                    disabled={(() => {
-                                                        const stepAction = relevantSteps.current.action?.toLowerCase() || ""
-                                                        const isCloneBugStep = stepAction.includes("clone") && stepAction.includes("jira")
-                                                        const isPreconditionsStep = stepAction.includes("precondition")
-                                                        const shouldNeverRequireNote = isCloneBugStep || isPreconditionsStep
-                                                        const isRequired = relevantSteps.current.requiresNote && !shouldNeverRequireNote
-                                                        return completeStepLoading || (isRequired && !stepNoteText.trim())
-                                                    })()}
-                                                    loading={completeStepLoading}
+                                                    disabled={isExecutingAction || (currentStepRequiresNote && !stepNoteText.trim())}
+                                                    loading={isExecutingAction}
                                                     glowColor="emerald"
                                                     className="h-12"
                                                 >
                                                     <CheckCircle2 className="mr-2 h-5 w-5" />
                                                     Mark Step as Complete
-                                                    {relevantSteps.current.isTerminal && (
+                                                    {isTerminalStep && (
                                                         <span className="ml-2 text-xs">(Final Step)</span>
                                                     )}
                                                 </GlassButton>
 
-                                                {relevantSteps.current.isTerminal && (
+                                                {isTerminalStep && (
                                                     <div className="p-6 bg-gradient-to-br from-orange-500/15 to-amber-500/10 border border-orange-400/30 rounded-xl shadow-lg">
                                                         <div className="flex items-center gap-3 text-orange-300 mb-3">
                                                             <div className="p-2 bg-orange-400/20 rounded-lg">
@@ -862,7 +513,7 @@ export default function TaskDetailPage() {
                             )}
 
                             {/* Task Complete Message */}
-                            {isTaskComplete && (
+                            {isComplete && (
                                 <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
                                     <CardContent className="p-8 text-center">
                                         <div className="space-y-4">
@@ -872,7 +523,7 @@ export default function TaskDetailPage() {
                                             <div>
                                                 <h3 className="text-xl font-semibold text-white mb-2">Task Completed!</h3>
                                                 <p className="text-gray-300">
-                                                    This task has been successfully completed. All steps have been finished.
+                                                    This workflow has been successfully completed. All steps have been finished.
                                                 </p>
                                             </div>
                                             <GlassButton
@@ -887,8 +538,8 @@ export default function TaskDetailPage() {
                                 </Card>
                             )}
 
-                            {/* Waiting for Next Step Message */}
-                            {!isTaskComplete && relevantSteps.current && relevantSteps.current.status === "Done" && (
+                            {/* No Current Step Message */}
+                            {!isComplete && !currentStep && workflowState && (
                                 <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
                                     <CardContent className="p-8 text-center">
                                         <div className="space-y-4">
@@ -896,15 +547,10 @@ export default function TaskDetailPage() {
                                                 <Clock className="h-12 w-12 text-blue-400" />
                                             </div>
                                             <div>
-                                                <h3 className="text-xl font-semibold text-white mb-2">Step Complete - Processing...</h3>
+                                                <h3 className="text-xl font-semibold text-white mb-2">Workflow Processing...</h3>
                                                 <p className="text-gray-300 mb-4">
-                                                    The current step has been completed. The system is processing the workflow to determine the next step.
+                                                    The workflow engine is determining the next step. Please refresh to see updates.
                                                 </p>
-                                                <div className="p-3 bg-yellow-500/10 border border-yellow-400/30 rounded-lg">
-                                                    <p className="text-sm text-yellow-300">
-                                                        Please refresh the page or wait a moment for the next step to appear.
-                                                    </p>
-                                                </div>
                                             </div>
                                             <GlassButton
                                                 onClick={() => window.location.reload()}
@@ -917,91 +563,6 @@ export default function TaskDetailPage() {
                                     </CardContent>
                                 </Card>
                             )}
-
-                            {/* No Current Step Message */}
-                            {!isTaskComplete && !relevantSteps.current && (
-                                <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
-                                    <CardContent className="p-8 text-center">
-                                        <div className="space-y-4">
-                                            <div className="p-4 bg-gray-500/20 rounded-full w-fit mx-auto">
-                                                <AlertTriangle className="h-12 w-12 text-gray-400" />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-semibold text-white mb-2">No Current Step</h3>
-                                                <p className="text-gray-300">
-                                                    There's no current step defined for this task. This may indicate a workflow configuration issue.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
-
-                            {/* Notes Section */}
-                            <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
-                                <CardHeader
-                                    className="cursor-pointer"
-                                    onClick={() => toggleSection("notes")}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
-                                            <MessageSquare className="h-5 w-5 text-purple-400" />
-                                            Task Notes ({task.taskNotes?.length || 0})
-                                        </CardTitle>
-                                        {expandedSections.has("notes") ?
-                                            <ChevronDown className="h-4 w-4 text-gray-400" /> :
-                                            <ChevronRight className="h-4 w-4 text-gray-400" />
-                                        }
-                                    </div>
-                                </CardHeader>
-                                {expandedSections.has("notes") && (
-                                    <CardContent className="space-y-4">
-                                        {/* Add Note */}
-                                        <div className="space-y-2">
-                                            <Label className="text-sm text-gray-300">Add Note</Label>
-                                            <Textarea
-                                                value={generalNoteText}
-                                                onChange={(e) => setGeneralNoteText(e.target.value)}
-                                                placeholder="Add a note about this task..."
-                                                className="bg-white/10 border-white/20 text-white placeholder:text-gray-400 resize-none"
-                                                rows={3}
-                                            />
-                                            <GlassButton
-                                                onClick={handleAddNote}
-                                                disabled={!generalNoteText.trim() || addNoteLoading}
-                                                loading={addNoteLoading}
-                                                size="sm"
-                                                glowColor="purple"
-                                            >
-                                                <Plus className="mr-2 h-4 w-4" />
-                                                Add Note
-                                            </GlassButton>
-                                        </div>
-
-                                        {/* Notes List */}
-                                        {task.taskNotes && task.taskNotes.length > 0 && (
-                                            <div className="space-y-3">
-                                                <Label className="text-sm text-gray-300">Previous Notes</Label>
-                                                <ScrollArea className="h-40">
-                                                    <div className="space-y-3">
-                                                        {task.taskNotes.map((note) => (
-                                                            <div key={note.taskNoteId} className="p-3 bg-white/5 rounded-lg border border-white/10">
-                                                                <div className="flex items-center gap-2 mb-2">
-                                                                    <User className="h-3 w-3 text-gray-400" />
-                                                                    <span className="text-xs text-gray-400">{note.createdBy}</span>
-                                                                    <span className="text-xs text-gray-500">•</span>
-                                                                    <span className="text-xs text-gray-500">{new Date(note.createdAt).toLocaleString()}</span>
-                                                                </div>
-                                                                <p className="text-sm text-gray-200">{note.content}</p>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </ScrollArea>
-                                            </div>
-                                        )}
-                                    </CardContent>
-                                )}
-                            </Card>
                         </div>
                     </div>
                 </div>
