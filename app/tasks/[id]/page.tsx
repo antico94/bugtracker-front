@@ -300,9 +300,13 @@ export default function TaskDetailPageSimplified() {
                                     {completedSteps.length > 0 && (
                                         <div className="space-y-3">
                                             <Label className="text-sm text-gray-300">Completed Steps</Label>
-                                            {completedSteps.map((step) => (
+                                            {completedSteps
+                                                .filter((step, index, arr) => 
+                                                    arr.findIndex(s => s.stepId === step.stepId) === index
+                                                )
+                                                .map((step, index) => (
                                                 <div
-                                                    key={step.stepId}
+                                                    key={`completed-${step.stepId}-${index}`}
                                                     className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-400/20 rounded-lg"
                                                 >
                                                     <CheckCircle2 className="h-4 w-4 text-green-400 flex-shrink-0" />
