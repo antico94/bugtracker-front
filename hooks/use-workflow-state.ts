@@ -13,6 +13,7 @@ interface WorkflowStateResponse {
   context: Record<string, any>
   lastUpdated: string
   errorMessage?: string
+  isTaskComplete: boolean
   executionMetadata: {
     startedAt: string
     performedBy: string
@@ -177,7 +178,7 @@ export function useWorkflowState(taskId: string) {
 
   // Computed properties that replace frontend logic
   const isLoading = loading
-  const isComplete = workflowState?.status === 'Completed'
+  const isComplete = workflowState?.isTaskComplete || false
   const hasError = !!error || !!workflowState?.errorMessage
   const errorMessage = error || workflowState?.errorMessage
 
