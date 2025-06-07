@@ -17,44 +17,23 @@ export interface ApiQueryOptions {
   method?: string
 }
 
-// Function-based overload (existing)
-export function useApiQuery<T>(
+// Create separate hooks to avoid complexity and bugs
+function useApiQueryWithFunction<T>(
   queryFn: () => Promise<T>,
-  deps?: DependencyList
-): ApiQueryState<T>
-
-// Object-based overload (new)
-export function useApiQuery<T>(
-  options: ApiQueryOptions
-): ApiQueryState<T>
-
-export function useApiQuery<T>(
-  queryFnOrOptions: (() => Promise<T>) | ApiQueryOptions,
   deps: DependencyList = []
 ): ApiQueryState<T> {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
-  // Determine if using function or options API
-  const isOptionsAPI = typeof queryFnOrOptions === 'object'
-  const options = isOptionsAPI ? queryFnOrOptions as ApiQueryOptions : null
-  const queryFn = isOptionsAPI ? null : queryFnOrOptions as () => Promise<T>
-  const enabled = options?.enabled ?? true
-  
-  // Use refs to prevent infinite loops
   const queryFnRef = useRef(queryFn)
   const isMounted = useRef(true)
   const isFirstRender = useRef(true)
-  
-  // Store the actual dependencies in a ref to compare them
   const previousDepsRef = useRef<DependencyList>(deps)
   
-  // Only update the queryFn ref if it changes
+  // Update the queryFn ref when it changes
   useEffect(() => {
-    if (queryFn) {
-      queryFnRef.current = queryFn
-    }
+    queryFnRef.current = queryFn
   }, [queryFn])
   
   // Set up cleanup
@@ -66,24 +45,13 @@ export function useApiQuery<T>(
   }, [])
 
   const fetchData = useCallback(async (): Promise<T | null> => {
-    if (!isMounted.current || !enabled) return null
+    if (!isMounted.current) return null
     
     try {
       setLoading(true)
       setError(null)
       
-      let result: T
-      
-      if (isOptionsAPI && options) {
-        // Handle options API - create a repository instance and call the endpoint
-        const repository = new BaseRepository()
-        result = await repository.get<T>(options.endpoint)
-      } else if (queryFnRef.current) {
-        // Handle function API
-        result = await queryFnRef.current()
-      } else {
-        throw new Error("No query function or options provided")
-      }
+      const result = await queryFnRef.current()
       
       if (isMounted.current) {
         setData(result)
@@ -95,7 +63,6 @@ export function useApiQuery<T>(
       console.error("API Query Error:", err)
       
       if (isMounted.current) {
-        // Better error messages for common issues
         let errorMessage = "An error occurred"
         if (err instanceof Error) {
           if (err.message.includes("Failed to fetch")) {
@@ -114,36 +81,125 @@ export function useApiQuery<T>(
       
       return null
     }
-  }, [isOptionsAPI, options, enabled]) // Add dependencies
+  }, [])
 
-  // Only run the effect if deps have changed
+  // Handle dependency changes
   useEffect(() => {
-    if (!enabled) return
-    
-    if (isOptionsAPI) {
-      // For options API, use queryKey as dependencies
+    if (isFirstRender.current) {
+      isFirstRender.current = false
       fetchData()
-    } else {
-      // For function API, use provided deps
-      if (isFirstRender.current) {
-        isFirstRender.current = false
-        fetchData()
-        return
-      }
-      
-      const depsChanged = deps.some((dep, i) => dep !== previousDepsRef.current[i])
-      
-      if (depsChanged) {
-        previousDepsRef.current = deps
-        fetchData()
-      }
+      return
     }
-  }, isOptionsAPI ? (options?.queryKey || []) : deps)
+    
+    const depsChanged = deps.some((dep, i) => dep !== previousDepsRef.current[i])
+    
+    if (depsChanged) {
+      previousDepsRef.current = deps
+      fetchData()
+    }
+  }, deps)
 
   return {
     data,
     loading,
     error,
     refetch: fetchData,
+  }
+}
+
+function useApiQueryWithOptions<T>(options: ApiQueryOptions): ApiQueryState<T> {
+  const [data, setData] = useState<T | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  
+  const isMounted = useRef(true)
+  const enabled = options.enabled ?? true
+  
+  // Set up cleanup
+  useEffect(() => {
+    isMounted.current = true
+    return () => {
+      isMounted.current = false
+    }
+  }, [])
+
+  const fetchData = useCallback(async (): Promise<T | null> => {
+    if (!isMounted.current || !enabled) return null
+    
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const repository = new BaseRepository()
+      const result = await repository.get<T>(options.endpoint)
+      
+      if (isMounted.current) {
+        setData(result)
+        setLoading(false)
+      }
+      
+      return result
+    } catch (err) {
+      console.error("API Query Error:", err)
+      
+      if (isMounted.current) {
+        let errorMessage = "An error occurred"
+        if (err instanceof Error) {
+          if (err.message.includes("Failed to fetch")) {
+            errorMessage = "Unable to connect to the server. Please check if the backend is running."
+          } else if (err.message.includes("404")) {
+            errorMessage = err.message
+          } else {
+            errorMessage = err.message
+          }
+        }
+        
+        setError(errorMessage)
+        setData(null)
+        setLoading(false)
+      }
+      
+      return null
+    }
+  }, [options.endpoint, enabled])
+
+  // Trigger fetch when queryKey changes
+  useEffect(() => {
+    if (enabled) {
+      fetchData()
+    }
+  }, [...(options.queryKey || []), enabled])
+
+  return {
+    data,
+    loading,
+    error,
+    refetch: fetchData,
+  }
+}
+
+// Function-based overload (existing)
+export function useApiQuery<T>(
+  queryFn: () => Promise<T>,
+  deps?: DependencyList
+): ApiQueryState<T>
+
+// Object-based overload (new)
+export function useApiQuery<T>(
+  options: ApiQueryOptions
+): ApiQueryState<T>
+
+// Implementation with robust type checking
+export function useApiQuery<T>(
+  queryFnOrOptions: (() => Promise<T>) | ApiQueryOptions,
+  deps: DependencyList = []
+): ApiQueryState<T> {
+  // Robust check to distinguish between function and options
+  const isFunction = typeof queryFnOrOptions === 'function'
+  
+  if (isFunction) {
+    return useApiQueryWithFunction(queryFnOrOptions as () => Promise<T>, deps)
+  } else {
+    return useApiQueryWithOptions(queryFnOrOptions as ApiQueryOptions)
   }
 }
